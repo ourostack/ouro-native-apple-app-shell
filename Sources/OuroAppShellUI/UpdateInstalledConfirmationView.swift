@@ -4,17 +4,20 @@ import SwiftUI
 public struct UpdateInstalledConfirmationView: View {
     public var appName: String
     public var version: String
+    public var openAboutLabel: String
     public var onOpenAbout: () -> Void
     public var onDismiss: () -> Void
 
     public init(
         appName: String,
         version: String,
+        openAboutLabel: String = "Open About",
         onOpenAbout: @escaping () -> Void,
         onDismiss: @escaping () -> Void
     ) {
         self.appName = appName
         self.version = version
+        self.openAboutLabel = openAboutLabel
         self.onOpenAbout = onOpenAbout
         self.onDismiss = onDismiss
     }
@@ -39,7 +42,7 @@ public struct UpdateInstalledConfirmationView: View {
                 Button {
                     onOpenAbout()
                 } label: {
-                    Label("Open About", systemImage: "info.circle")
+                    Label(openAboutLabel, systemImage: "info.circle")
                 }
                 Button("Done") {
                     onDismiss()

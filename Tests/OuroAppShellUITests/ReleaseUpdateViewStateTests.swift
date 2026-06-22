@@ -30,7 +30,7 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
         XCTAssertEqual(state.kind, .notChecked)
         XCTAssertEqual(state.statusLine, "Updates have not been checked yet.")
         XCTAssertEqual(state.metadata, [ReleaseUpdateMetadataItem(label: "Channel", value: "App Store")])
-        XCTAssertEqual(state.metadata.first?.id, "Channel")
+        XCTAssertEqual(state.metadata.first?.id, "Channel:App Store")
         XCTAssertFalse(state.hasPrimaryAction)
         XCTAssertNil(state.displayDetail)
     }
@@ -54,6 +54,14 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
         XCTAssertEqual(state.displayDetail, "Archive is missing.")
         XCTAssertTrue(state.canOpenReleasePage)
         XCTAssertEqual(ReleaseUpdateActionLabels().check, "Check for Updates...")
+    }
+
+    func testMetadataItemsCanUseExplicitIDsForDuplicateLabels() {
+        let first = ReleaseUpdateMetadataItem(id: "latest-stable", label: "Latest", value: "1.0.0")
+        let second = ReleaseUpdateMetadataItem(id: "latest-beta", label: "Latest", value: "2.0.0-beta.1")
+
+        XCTAssertNotEqual(first.id, second.id)
+        XCTAssertEqual(first.label, second.label)
     }
 
     func testActionLabelsCanBeCustomized() {

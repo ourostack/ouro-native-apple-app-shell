@@ -87,13 +87,12 @@ public struct AppShellAboutView: View {
 
     private var footer: some View {
         HStack(spacing: 8) {
-            if aboutActions.openRepository != nil || model.repositoryURL != nil {
+            if let openRepository = aboutActions.openRepository {
                 Button {
-                    aboutActions.openRepository?()
+                    openRepository()
                 } label: {
                     Label("Open Repo", systemImage: "arrow.up.right.square")
                 }
-                .disabled(aboutActions.openRepository == nil)
             }
 
             if let copyVersion = aboutActions.copyVersion {

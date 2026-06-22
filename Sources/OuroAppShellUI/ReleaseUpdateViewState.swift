@@ -60,11 +60,12 @@ public enum ReleaseUpdateStateKind: String, CaseIterable, Equatable, Sendable {
 }
 
 public struct ReleaseUpdateMetadataItem: Identifiable, Equatable, Sendable {
-    public var id: String { label }
+    public var id: String
     public var label: String
     public var value: String
 
-    public init(label: String, value: String) {
+    public init(id: String? = nil, label: String, value: String) {
+        self.id = id ?? "\(label):\(value)"
         self.label = label
         self.value = value
     }
