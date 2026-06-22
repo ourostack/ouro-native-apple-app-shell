@@ -9,6 +9,5 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 
 - `OuroAppShellCore`: pure, testable app identity, release/update, and
   distribution-channel logic shared by native Ouro apps.
-
-SwiftUI shell surfaces will live in a follow-up product once the core contract is
-stable across Ouro MD and Ouro Workbench.
+- `OuroAppShellUI`: SwiftUI About, What's New, release update, and update
+  confirmation surfaces that apps drive through value state and action closures.

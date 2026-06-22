@@ -8,13 +8,22 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .library(name: "OuroAppShellCore", targets: ["OuroAppShellCore"])
+        .library(name: "OuroAppShellCore", targets: ["OuroAppShellCore"]),
+        .library(name: "OuroAppShellUI", targets: ["OuroAppShellUI"])
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
+        .target(
+            name: "OuroAppShellUI",
+            dependencies: ["OuroAppShellCore"]
+        ),
         .testTarget(
             name: "OuroAppShellCoreTests",
             dependencies: ["OuroAppShellCore"]
+        ),
+        .testTarget(
+            name: "OuroAppShellUITests",
+            dependencies: ["OuroAppShellCore", "OuroAppShellUI"]
         )
     ]
 )
