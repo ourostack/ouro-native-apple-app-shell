@@ -5,6 +5,8 @@ public struct UpdateInstalledConfirmationView: View {
     public var appName: String
     public var version: String
     public var openAboutLabel: String
+    public var openAboutSystemImage: String?
+    public var dismissLabel: String
     public var onOpenAbout: () -> Void
     public var onDismiss: () -> Void
 
@@ -12,12 +14,16 @@ public struct UpdateInstalledConfirmationView: View {
         appName: String,
         version: String,
         openAboutLabel: String = "Open About",
+        openAboutSystemImage: String? = "info.circle",
+        dismissLabel: String = "Done",
         onOpenAbout: @escaping () -> Void,
         onDismiss: @escaping () -> Void
     ) {
         self.appName = appName
         self.version = version
         self.openAboutLabel = openAboutLabel
+        self.openAboutSystemImage = openAboutSystemImage
+        self.dismissLabel = dismissLabel
         self.onOpenAbout = onOpenAbout
         self.onDismiss = onDismiss
     }
@@ -39,12 +45,17 @@ public struct UpdateInstalledConfirmationView: View {
             }
 
             HStack(spacing: 8) {
+                Spacer(minLength: 0)
                 Button {
                     onOpenAbout()
                 } label: {
-                    Label(openAboutLabel, systemImage: "info.circle")
+                    if let openAboutSystemImage {
+                        Label(openAboutLabel, systemImage: openAboutSystemImage)
+                    } else {
+                        Text(openAboutLabel)
+                    }
                 }
-                Button("Done") {
+                Button(dismissLabel) {
                     onDismiss()
                 }
                 .keyboardShortcut(.defaultAction)
