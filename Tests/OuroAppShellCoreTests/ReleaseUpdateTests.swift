@@ -162,10 +162,10 @@ final class ReleaseUpdateTests: XCTestCase {
         """.utf8)
         let configuration = ReleaseUpdateConfiguration(
             identity: workbenchIdentity,
-            assetNamingPolicy: .workbench(),
-            includePrereleases: true
+            releasePolicy: .workbench()
         )
 
+        XCTAssertTrue(configuration.includePrereleases)
         let snapshot = try ReleaseUpdateChecker.snapshot(from: data, configuration: configuration)
 
         XCTAssertEqual(snapshot.status, .updateAvailable)

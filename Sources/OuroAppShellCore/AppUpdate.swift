@@ -4,7 +4,7 @@ public struct AppUpdateManifest: Codable, Equatable, Sendable {
     public var appName: String
     public var bundleIdentifier: String
     public var version: String
-    public var build: String?
+    public var build: String
     public var archive: String
     public var sha256: String
     public var bytes: Int
@@ -13,7 +13,7 @@ public struct AppUpdateManifest: Codable, Equatable, Sendable {
         appName: String,
         bundleIdentifier: String,
         version: String,
-        build: String? = nil,
+        build: String,
         archive: String,
         sha256: String,
         bytes: Int

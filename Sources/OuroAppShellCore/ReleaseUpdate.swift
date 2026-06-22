@@ -104,21 +104,18 @@ public struct ReleaseUpdateSnapshot: Codable, Equatable, Sendable {
 
 public struct ReleaseUpdateConfiguration: Equatable, Sendable {
     public var identity: AppShellIdentity
-    public var assetNamingPolicy: ReleaseAssetNamingPolicy
-    public var includePrereleases: Bool
+    public var releasePolicy: ReleaseUpdatePolicy
     public var releasesURL: URL
     public var timeout: TimeInterval
 
     public init(
         identity: AppShellIdentity,
-        assetNamingPolicy: ReleaseAssetNamingPolicy = .simpleArchiveAndManifest(),
-        includePrereleases: Bool = false,
+        releasePolicy: ReleaseUpdatePolicy = .stable(),
         releasesURL: URL? = nil,
         timeout: TimeInterval = 10
     ) {
         self.identity = identity
-        self.assetNamingPolicy = assetNamingPolicy
-        self.includePrereleases = includePrereleases
+        self.releasePolicy = releasePolicy
         self.releasesURL = releasesURL ?? identity.releasesAPIURL
         self.timeout = timeout
     }
@@ -133,6 +130,14 @@ public struct ReleaseUpdateConfiguration: Equatable, Sendable {
 
     public var currentBuild: String? {
         identity.build
+    }
+
+    public var assetNamingPolicy: ReleaseAssetNamingPolicy {
+        releasePolicy.assetNamingPolicy
+    }
+
+    public var includePrereleases: Bool {
+        releasePolicy.includePrereleases
     }
 }
 

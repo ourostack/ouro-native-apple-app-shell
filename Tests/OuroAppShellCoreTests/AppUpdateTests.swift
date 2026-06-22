@@ -150,6 +150,18 @@ final class AppUpdateTests: XCTestCase {
         XCTAssertEqual(manifest.version, "0.10.0")
         XCTAssertEqual(manifest.build, "0.10.0")
         XCTAssertEqual(manifest.bytes, 7_400_000)
+
+        let missingBuild = """
+        {
+          "appName": "Ouro MD",
+          "bundleIdentifier": "org.ourostack.ouro-md",
+          "version": "0.10.0",
+          "archive": "Ouro-MD-0.10.0.zip",
+          "sha256": "05abb1975c8cb04afc0b5988428e6e0e9af5b46217ab519873c66f885a4d2050",
+          "bytes": 7400000
+        }
+        """
+        XCTAssertThrowsError(try JSONDecoder().decode(AppUpdateManifest.self, from: Data(missingBuild.utf8)))
     }
 
     private func manifest(
@@ -157,7 +169,7 @@ final class AppUpdateTests: XCTestCase {
         bytes: Int = 7_400_000,
         bundleID: String = "org.ourostack.ouro-md",
         version: String = "0.10.0",
-        build: String? = nil,
+        build: String = "0.10.0",
         archive: String = "Ouro-MD-0.10.0.zip"
     ) -> AppUpdateManifest {
         AppUpdateManifest(
