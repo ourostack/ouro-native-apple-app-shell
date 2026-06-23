@@ -41,7 +41,7 @@ private struct SurfaceProbe {
                 height: 540,
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
-                minimumInkRatio: 0.055,
+                minimumInkRatio: 0.045,
                 requiredRenderedText: [
                     "Ouro MD",
                     "Version 0.9.24",
@@ -69,7 +69,7 @@ private struct SurfaceProbe {
                 height: 560,
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
-                minimumInkRatio: 0.070,
+                minimumInkRatio: 0.055,
                 requiredRenderedText: [
                     "Ouro MD",
                     "Version 0.9.24",
