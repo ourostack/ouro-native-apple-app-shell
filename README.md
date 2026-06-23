@@ -17,9 +17,16 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 - `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`
 - `scripts/check-coverage.sh`
 - `scripts/ui-surface-probe.sh`
+- `scripts/check-downstream-consumers.sh`
 
 The UI probe is a package-owned executable that renders representative About,
 release update, and installed-confirmation surfaces offscreen. It fails when a
 surface loses required semantic tokens/action labels, renders too little
 non-background content, or reports implausible fitting sizes, so shared shell
 regressions are caught here before they reach downstream apps.
+
+The downstream consumer check clones Ouro MD and Ouro Workbench into
+`.downstream-consumers`, overrides their `ouro-native-apple-app-shell`
+SwiftPM dependency to this checkout, then runs each app's build/test/UI smoke.
+That catches shell changes that compile locally but break the next consumer
+resolution.

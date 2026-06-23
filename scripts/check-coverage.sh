@@ -21,8 +21,8 @@ if [ "${1:-}" != "--no-build" ]; then
   swift test --enable-code-coverage -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
 fi
 
-bin="$(find .build -name '*PackageTests' -type f -path '*MacOS*' ! -path '*dSYM*' | head -1)"
-prof="$(find .build -name 'default.profdata' | head -1)"
+bin="$(find .build -path '*/OuroAppShellPackageTests.xctest/Contents/MacOS/OuroAppShellPackageTests' -type f ! -path '*dSYM*' | head -1)"
+prof="$(find .build -path '*/codecov/default.profdata' -type f | head -1)"
 if [ -z "$bin" ] || [ -z "$prof" ]; then
   echo "error: could not locate coverage artifacts (binary='$bin' profdata='$prof')" >&2
   exit 1
