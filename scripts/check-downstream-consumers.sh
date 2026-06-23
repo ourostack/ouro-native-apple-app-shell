@@ -7,6 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK_ROOT="${OURO_DOWNSTREAM_WORK_ROOT:-"$ROOT/.downstream-consumers"}"
 SHELL_PACKAGE="ouro-native-apple-app-shell"
+SHELL_PACKAGE_URL="https://github.com/ourostack/ouro-native-apple-app-shell.git"
 STRICT_FLAGS=(-Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete)
 
 usage() {
@@ -75,17 +76,31 @@ prepare_consumer() {
 
 override_shell_package() {
   local dir="$1"
+  local manifest="$dir/Package.swift"
+
+  [ -f "$manifest" ] || fail "$dir is missing Package.swift"
+  grep -Fq "$SHELL_PACKAGE_URL" "$manifest" || fail "$manifest does not depend on $SHELL_PACKAGE_URL"
+
+  OURO_SHELL_OVERRIDE_PATH="$ROOT" perl -0pi -e '
+    my $path = $ENV{"OURO_SHELL_OVERRIDE_PATH"};
+    $path =~ s/\\/\\\\/g;
+    $path =~ s/"/\\"/g;
+    my $count = s{
+      \.package\(
+        \s*url:\s*"https://github\.com/ourostack/ouro-native-apple-app-shell\.git",
+        \s*branch:\s*"main"
+      \)
+    }{.package(name: "ouro-native-apple-app-shell", path: "$path")}gx;
+    die "did not replace ouro-native-apple-app-shell dependency\n" unless $count == 1;
+  ' "$manifest"
+
+  grep -Fq ".package(name: \"$SHELL_PACKAGE\", path: \"$ROOT\")" "$manifest" || fail "$manifest was not overridden to $ROOT"
 
   run swift package --package-path "$dir" resolve
-  run swift package --package-path "$dir" edit "$SHELL_PACKAGE" --path "$ROOT"
 
-  local edited="$dir/Packages/$SHELL_PACKAGE"
-  [ -e "$edited" ] || fail "$dir did not create Packages/$SHELL_PACKAGE"
-
-  local edited_real root_real
-  edited_real="$(cd "$edited" && pwd -P)"
+  local root_real
   root_real="$(cd "$ROOT" && pwd -P)"
-  [ "$edited_real" = "$root_real" ] || fail "$dir edited $SHELL_PACKAGE to $edited_real, expected $root_real"
+  swift package --package-path "$dir" show-dependencies | grep -Fq "$root_real" || fail "$dir did not resolve $SHELL_PACKAGE to $root_real"
 }
 
 check_ouro_md() {
