@@ -27,6 +27,8 @@ jobs:
         run: swift package resolve
       - name: Run strict tests
         run: swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
+      - name: Run UI surface probe
+        run: scripts/ui-surface-probe.sh
 
   coverage:
     name: Coverage

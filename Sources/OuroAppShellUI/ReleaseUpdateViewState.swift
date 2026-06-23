@@ -1,4 +1,5 @@
 import Foundation
+import OuroAppShellCore
 
 public enum ReleaseUpdateTone: String, CaseIterable, Equatable, Sendable {
     case neutral
@@ -115,6 +116,71 @@ public struct ReleaseUpdateViewState: Equatable, Sendable {
 
     public var displayDetail: String? {
         warning ?? detail
+    }
+
+    public static func from(
+        snapshot: ReleaseUpdateSnapshot,
+        installPlan: Result<AppUpdatePlan, AppUpdatePlanError>? = nil,
+        channel: String = "Direct download"
+    ) -> ReleaseUpdateViewState {
+        switch snapshot.status {
+        case .current:
+            return ReleaseUpdateViewState(
+                kind: .current,
+                statusLine: snapshot.detail,
+                metadata: metadata(from: snapshot, channel: channel),
+                canOpenReleasePage: snapshot.htmlURL != nil
+            )
+        case .updateAvailable:
+            let plan = installPlan ?? AppUpdatePlanner.plan(from: snapshot)
+            let canInstall = plan.isSuccess
+            return ReleaseUpdateViewState(
+                kind: .updateAvailable,
+                statusLine: snapshot.detail,
+                metadata: metadata(from: snapshot, channel: channel),
+                detail: canInstall ? "The archive and manifest are present." : plan.failureDescription,
+                canReviewUpdate: true,
+                canInstallUpdate: canInstall,
+                canOpenReleasePage: snapshot.htmlURL != nil
+            )
+        case .unavailable:
+            return ReleaseUpdateViewState(
+                kind: .unavailable,
+                statusLine: snapshot.detail,
+                metadata: metadata(from: snapshot, channel: channel),
+                canOpenReleasePage: snapshot.htmlURL != nil
+            )
+        }
+    }
+
+    private static func metadata(
+        from snapshot: ReleaseUpdateSnapshot,
+        channel: String
+    ) -> [ReleaseUpdateMetadataItem] {
+        var items = [
+            ReleaseUpdateMetadataItem(label: "Current", value: snapshot.currentReleaseLabelForPrompt)
+        ]
+        if let latest = snapshot.latestReleaseLabelForPrompt {
+            items.append(ReleaseUpdateMetadataItem(label: "Latest", value: latest))
+        }
+        items.append(ReleaseUpdateMetadataItem(label: "Channel", value: channel))
+        return items
+    }
+}
+
+private extension Result where Failure == AppUpdatePlanError {
+    var isSuccess: Bool {
+        guard case .success = self else {
+            return false
+        }
+        return true
+    }
+
+    var failureDescription: String {
+        guard case let .failure(error) = self else {
+            return ""
+        }
+        return error.localizedDescription
     }
 }
 
