@@ -106,50 +106,79 @@ public struct ReleaseUpdateControls: View {
     }
 
     private var actionsRow: some View {
-        HStack(spacing: 8) {
-            Button {
-                actions.checkForUpdates()
-            } label: {
-                Label(labels.check, systemImage: "arrow.clockwise")
-            }
-            .controlSize(.small)
-            .disabled(state.kind == .checking)
-            .accessibilityLabel("Check for updates")
-
-            if state.canReviewUpdate, let reviewUpdate = actions.reviewUpdate {
-                Button {
-                    reviewUpdate()
-                } label: {
-                    Label(labels.review, systemImage: "arrow.down.circle")
-                }
-                .controlSize(.small)
-                .disabled(state.kind == .installing)
-                .accessibilityLabel("Review update")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                checkForUpdatesButton
+                reviewUpdateButton
+                installAndRelaunchButton
+                openReleasePageButton
             }
 
-            if state.canInstallUpdate, let installAndRelaunch = actions.installAndRelaunch {
-                Button {
-                    installAndRelaunch()
-                } label: {
-                    Label(labels.install, systemImage: "arrow.down.app.fill")
+            VStack(alignment: centered ? .center : .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    checkForUpdatesButton
+                    reviewUpdateButton
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-                .disabled(state.kind == .installing)
-                .accessibilityLabel("Install and relaunch")
-            }
-
-            if state.canOpenReleasePage, let openReleasePage = actions.openReleasePage {
-                Button {
-                    openReleasePage()
-                } label: {
-                    Label(labels.openRelease, systemImage: "safari")
+                HStack(spacing: 8) {
+                    installAndRelaunchButton
+                    openReleasePageButton
                 }
-                .controlSize(.small)
-                .accessibilityLabel("Open release notes")
             }
         }
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var checkForUpdatesButton: some View {
+        Button {
+            actions.checkForUpdates()
+        } label: {
+            Label(labels.check, systemImage: "arrow.clockwise")
+        }
+        .controlSize(.small)
+        .disabled(state.kind == .checking)
+        .accessibilityLabel("Check for updates")
+    }
+
+    @ViewBuilder
+    private var reviewUpdateButton: some View {
+        if state.canReviewUpdate, let reviewUpdate = actions.reviewUpdate {
+            Button {
+                reviewUpdate()
+            } label: {
+                Label(labels.review, systemImage: "arrow.down.circle")
+            }
+            .controlSize(.small)
+            .disabled(state.kind == .installing)
+            .accessibilityLabel("Review update")
+        }
+    }
+
+    @ViewBuilder
+    private var installAndRelaunchButton: some View {
+        if state.canInstallUpdate, let installAndRelaunch = actions.installAndRelaunch {
+            Button {
+                installAndRelaunch()
+            } label: {
+                Label(labels.install, systemImage: "arrow.down.app.fill")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .disabled(state.kind == .installing)
+            .accessibilityLabel("Install and relaunch")
+        }
+    }
+
+    @ViewBuilder
+    private var openReleasePageButton: some View {
+        if state.canOpenReleasePage, let openReleasePage = actions.openReleasePage {
+            Button {
+                openReleasePage()
+            } label: {
+                Label(labels.openRelease, systemImage: "safari")
+            }
+            .controlSize(.small)
+            .accessibilityLabel("Open release notes")
+        }
     }
 }
 
