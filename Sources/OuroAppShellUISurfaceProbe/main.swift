@@ -368,9 +368,20 @@ private struct SurfaceProbe {
     }
 
     private func renderedTextContains(_ renderedText: Set<String>, _ token: String) -> Bool {
-        renderedText.contains { line in
-            line.localizedCaseInsensitiveContains(token)
+        let normalizedToken = normalizeOCRText(token)
+        return renderedText.contains { line in
+            normalizeOCRText(line).contains(normalizedToken)
         }
+    }
+
+    private func normalizeOCRText(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "…", with: "...")
+            .replacingOccurrences(of: "’", with: "'")
+            .replacingOccurrences(of: "‘", with: "'")
+            .replacingOccurrences(of: "“", with: "\"")
+            .replacingOccurrences(of: "”", with: "\"")
+            .folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: .current)
     }
 }
 
