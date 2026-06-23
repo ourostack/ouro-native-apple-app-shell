@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftUI
+import Vision
 import OuroAppShellCore
 import OuroAppShellUI
 
@@ -41,17 +42,12 @@ private struct SurfaceProbe {
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
                 minimumInkRatio: 0.055,
-                semanticText: aboutSemantics(
-                    model: aboutModel,
-                    updateState: currentState,
-                    updateActions: basicActions,
-                    aboutActions: ["Open Repo", "Copy Version", "Done"]
-                ),
-                requiredSemanticTokens: [
-                    "About Ouro MD",
-                    "Version 0.9.24 - Build surface-probe",
-                    "Version 0.9.24 is current.",
-                    "Last checked just now.",
+                requiredRenderedText: [
+                    "Ouro MD",
+                    "Version 0.9.24",
+                    "Build surface-probe",
+                    "0.9.24 is current",
+                    "Last checked",
                     "Check for Updates...",
                     "Open Repo",
                     "Copy Version",
@@ -74,16 +70,12 @@ private struct SurfaceProbe {
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
                 minimumInkRatio: 0.070,
-                semanticText: aboutSemantics(
-                    model: aboutModel,
-                    updateState: availableState,
-                    updateActions: fullActions,
-                    aboutActions: ["Open Repo", "Copy Version", "Done"]
-                ),
-                requiredSemanticTokens: [
-                    "What's New in 0.9.24",
-                    "Version 0.9.25 is available.",
-                    "The archive and manifest are present.",
+                requiredRenderedText: [
+                    "Ouro MD",
+                    "Version 0.9.24",
+                    "What's New",
+                    "0.9.25 is available",
+                    "archive and manifest",
                     "Review Update",
                     "Install & Relaunch",
                     "View Release Notes"
@@ -113,14 +105,9 @@ private struct SurfaceProbe {
                 expectedWidth: 340...390,
                 expectedHeight: 95...135,
                 minimumInkRatio: 0.050,
-                semanticText: [
+                requiredRenderedText: [
                     "Ouro MD 0.9.24 is installed",
-                    "The latest version is now running on this Mac.",
-                    "Open About",
-                    "Done"
-                ].joined(separator: "\n"),
-                requiredSemanticTokens: [
-                    "Ouro MD 0.9.24 is installed",
+                    "latest version is now running",
                     "Open About",
                     "Done"
                 ]
@@ -194,83 +181,28 @@ private struct SurfaceProbe {
         return ReleaseUpdateViewState.from(snapshot: snapshot, installPlan: plan)
     }
 
-    private func aboutSemantics(
-        model: AppShellAboutModel,
-        updateState: ReleaseUpdateViewState,
-        updateActions: ReleaseUpdateActions,
-        aboutActions: [String]
-    ) -> String {
-        var parts = [
-            model.accessibilityLabel,
-            model.appName,
-            model.versionLine,
-            model.subtitle,
-            model.repositoryURL?.absoluteString ?? "",
-            releaseUpdateSemantics(state: updateState, actions: updateActions)
-        ]
-
-        if let whatsNew = model.whatsNew {
-            parts.append(whatsNew.title)
-            parts.append(whatsNew.releasedText ?? "")
-            parts.append(contentsOf: whatsNew.highlights)
-            parts.append(whatsNew.releaseNotesPreview ?? "")
-        }
-
-        parts.append(contentsOf: aboutActions)
-        return parts.joined(separator: "\n")
-    }
-
-    private func releaseUpdateSemantics(
-        state: ReleaseUpdateViewState,
-        actions: ReleaseUpdateActions,
-        labels: ReleaseUpdateActionLabels = ReleaseUpdateActionLabels()
-    ) -> String {
-        var parts = [
-            "Software Updates",
-            "Update state",
-            state.kind.label,
-            state.statusLine,
-            state.displayDetail ?? "",
-            labels.check
-        ]
-
-        parts.append(contentsOf: state.metadata.flatMap { [$0.label, $0.value] })
-
-        if state.canReviewUpdate, actions.reviewUpdate != nil {
-            parts.append(labels.review)
-        }
-        if state.canInstallUpdate, actions.installAndRelaunch != nil {
-            parts.append(labels.install)
-        }
-        if state.canOpenReleasePage, actions.openReleasePage != nil {
-            parts.append(labels.openRelease)
-        }
-
-        return parts.joined(separator: "\n")
-    }
-
     private func updateControlSpec(for state: ReleaseUpdateViewState, actions: ReleaseUpdateActions) -> SurfaceSpec {
         // Ink ratios are calibrated against both hosted CI and local Retina rendering.
         let size: (width: ClosedRange<CGFloat>, height: ClosedRange<CGFloat>, inkRatio: Double)
         switch state.kind {
         case .notChecked:
-            size = (230...340, 95...145, 0.050)
+            size = (230...340, 95...145, 0.040)
         case .checking:
-            size = (220...330, 95...145, 0.045)
+            size = (220...330, 95...145, 0.018)
         case .current:
-            size = (220...330, 115...165, 0.045)
+            size = (220...330, 115...165, 0.040)
         case .updateAvailable:
-            size = (540...660, 115...165, 0.095)
+            size = (540...660, 115...165, 0.105)
         case .installing:
-            size = (220...330, 95...145, 0.040)
+            size = (220...330, 95...145, 0.035)
         case .readyToRelaunch:
-            size = (260...380, 95...145, 0.060)
+            size = (260...380, 95...145, 0.055)
         case .installed:
-            size = (220...330, 95...145, 0.040)
+            size = (220...330, 95...145, 0.035)
         case .unavailable:
             size = (270...390, 115...165, 0.065)
         case .failed:
-            size = (390...520, 115...165, 0.060)
+            size = (390...520, 115...165, 0.075)
         }
 
         var required = [
@@ -300,21 +232,19 @@ private struct SurfaceProbe {
             expectedWidth: size.width,
             expectedHeight: size.height,
             minimumInkRatio: size.inkRatio,
-            semanticText: releaseUpdateSemantics(state: state, actions: actions),
-            requiredSemanticTokens: required
+            requiredRenderedText: required
         )
     }
 
     private func measure<V: View>(spec: SurfaceSpec, _ view: V) throws {
-        for token in spec.requiredSemanticTokens where !spec.semanticText.contains(token) {
-            throw ProbeFailure.missingSemanticToken(name: spec.name, token: token)
-        }
+        let fittingView = NSHostingView(
+            rootView: view
+                .environment(\.colorScheme, .light)
+        )
+        fittingView.frame = NSRect(x: 0, y: 0, width: spec.width, height: spec.height)
+        fittingView.layoutSubtreeIfNeeded()
 
-        let hostingView = NSHostingView(rootView: view)
-        hostingView.frame = NSRect(x: 0, y: 0, width: spec.width, height: spec.height)
-        hostingView.layoutSubtreeIfNeeded()
-
-        let fittingSize = hostingView.fittingSize
+        let fittingSize = fittingView.fittingSize
         guard spec.expectedWidth.contains(fittingSize.width) else {
             throw ProbeFailure.badSize(name: spec.name, axis: "width", value: fittingSize.width, expected: spec.expectedWidth)
         }
@@ -322,30 +252,66 @@ private struct SurfaceProbe {
             throw ProbeFailure.badSize(name: spec.name, axis: "height", value: fittingSize.height, expected: spec.expectedHeight)
         }
 
-        let renderedInk = try renderedInk(hostingView, name: spec.name)
-        guard renderedInk.ratio >= spec.minimumInkRatio else {
+        let renderingView = NSHostingView(
+            rootView: ZStack(alignment: .topLeading) {
+                Color.white
+                view
+                    .environment(\.colorScheme, .light)
+            }
+            .frame(width: spec.width, height: spec.height, alignment: .topLeading)
+        )
+        renderingView.frame = NSRect(x: 0, y: 0, width: spec.width, height: spec.height)
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: spec.width, height: spec.height),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentView = renderingView
+        window.setFrameOrigin(NSPoint(x: -30000, y: -30000))
+        window.makeKeyAndOrderFront(nil)
+        defer {
+            window.orderOut(nil)
+        }
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.08))
+        renderingView.layoutSubtreeIfNeeded()
+        window.displayIfNeeded()
+        renderingView.displayIfNeeded()
+
+        let renderedSurface = try renderedSurface(renderingView, name: spec.name)
+        guard renderedSurface.ink.ratio >= spec.minimumInkRatio else {
             throw ProbeFailure.insufficientRender(
                 name: spec.name,
-                nonBlankPixels: renderedInk.nonBlankPixels,
-                totalPixels: renderedInk.totalPixels,
-                ratio: renderedInk.ratio,
+                nonBlankPixels: renderedSurface.ink.nonBlankPixels,
+                totalPixels: renderedSurface.ink.totalPixels,
+                ratio: renderedSurface.ink.ratio,
                 minimumRatio: spec.minimumInkRatio
             )
         }
 
+        let renderedText = recognizeText(in: renderedSurface.image)
+        for token in spec.requiredRenderedText where !renderedTextContains(renderedText, token) {
+            throw ProbeFailure.missingRenderedText(name: spec.name, token: token, recognizedText: renderedText)
+        }
+
         print(
             "\(spec.name): \(Int(fittingSize.width))x\(Int(fittingSize.height)), "
-                + "pixels=\(renderedInk.nonBlankPixels)/\(renderedInk.totalPixels), "
-                + "ink=\(String(format: "%.3f", renderedInk.ratio)), "
-                + "min=\(String(format: "%.3f", spec.minimumInkRatio))"
+                + "pixels=\(renderedSurface.ink.nonBlankPixels)/\(renderedSurface.ink.totalPixels), "
+                + "ink=\(String(format: "%.3f", renderedSurface.ink.ratio)), "
+                + "min=\(String(format: "%.3f", spec.minimumInkRatio)), "
+                + "ocr=\(renderedText.count)"
         )
     }
 
-    private func renderedInk(_ view: NSView, name: String) throws -> RenderedInk {
+    private func renderedSurface(_ view: NSView, name: String) throws -> RenderedSurface {
         guard let representation = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
             throw ProbeFailure.missingBitmap(name: name)
         }
         view.cacheDisplay(in: view.bounds, to: representation)
+        guard let image = representation.cgImage else {
+            throw ProbeFailure.missingBitmap(name: name)
+        }
+        saveDebugSnapshot(image, name: name)
 
         let width = representation.pixelsWide
         let height = representation.pixelsHigh
@@ -367,8 +333,47 @@ private struct SurfaceProbe {
             }
         }
 
-        return RenderedInk(nonBlankPixels: count, totalPixels: width * height)
+        return RenderedSurface(image: image, ink: RenderedInk(nonBlankPixels: count, totalPixels: width * height))
     }
+
+    private func saveDebugSnapshot(_ image: CGImage, name: String) {
+        guard ProcessInfo.processInfo.environment["OURO_APP_SHELL_UI_SURFACE_DEBUG_SNAPSHOT"] != nil else {
+            return
+        }
+        let representation = NSBitmapImageRep(cgImage: image)
+        guard let data = representation.representation(using: .png, properties: [:]) else {
+            return
+        }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("ouro-app-shell-\(name).png")
+        try? data.write(to: url)
+        print("debug snapshot: \(url.path)")
+    }
+
+    private func recognizeText(in image: CGImage) -> Set<String> {
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = false
+        let handler = VNImageRequestHandler(cgImage: image, options: [:])
+        do {
+            try handler.perform([request])
+        } catch {
+            return []
+        }
+        return Set((request.results ?? []).compactMap { observation in
+            observation.topCandidates(1).first?.string
+        })
+    }
+
+    private func renderedTextContains(_ renderedText: Set<String>, _ token: String) -> Bool {
+        renderedText.contains { line in
+            line.localizedCaseInsensitiveContains(token)
+        }
+    }
+}
+
+private struct RenderedSurface {
+    var image: CGImage
+    var ink: RenderedInk
 }
 
 private struct RenderedInk {
@@ -390,8 +395,7 @@ private struct SurfaceSpec {
     var expectedWidth: ClosedRange<CGFloat>
     var expectedHeight: ClosedRange<CGFloat>
     var minimumInkRatio: Double
-    var semanticText: String
-    var requiredSemanticTokens: [String]
+    var requiredRenderedText: [String]
 }
 
 private extension ReleaseUpdateViewState {
@@ -452,7 +456,7 @@ private enum ProbeFailure: Error, CustomStringConvertible {
     case badSize(name: String, axis: String, value: CGFloat, expected: ClosedRange<CGFloat>)
     case insufficientRender(name: String, nonBlankPixels: Int, totalPixels: Int, ratio: Double, minimumRatio: Double)
     case missingBitmap(name: String)
-    case missingSemanticToken(name: String, token: String)
+    case missingRenderedText(name: String, token: String, recognizedText: Set<String>)
 
     var description: String {
         switch self {
@@ -462,8 +466,9 @@ private enum ProbeFailure: Error, CustomStringConvertible {
             return "\(name) rendered only \(nonBlankPixels)/\(totalPixels) non-blank pixels (\(ratio)); expected at least \(minimumRatio)"
         case let .missingBitmap(name):
             return "\(name) did not produce a cacheable bitmap"
-        case let .missingSemanticToken(name, token):
-            return "\(name) missing semantic token: \(token)"
+        case let .missingRenderedText(name, token, recognizedText):
+            let observed = recognizedText.sorted().joined(separator: " | ")
+            return "\(name) missing rendered text token: \(token); recognized: \(observed)"
         }
     }
 }

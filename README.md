@@ -21,7 +21,7 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 
 The UI probe is a package-owned executable that renders representative About,
 release update, and installed-confirmation surfaces offscreen. It fails when a
-surface loses required semantic tokens/action labels, renders too little
+surface loses required rendered text/action labels, renders too little
 non-background content, or reports implausible fitting sizes, so shared shell
 regressions are caught here before they reach downstream apps.
 
