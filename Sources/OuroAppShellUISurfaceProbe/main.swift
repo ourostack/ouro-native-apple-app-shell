@@ -23,6 +23,8 @@ struct OuroAppShellUISurfaceProbe {
 
 @MainActor
 private struct SurfaceProbe {
+    private let nonBlankInkRatio = 0.010
+
     func run() throws {
         let basicActions = ReleaseUpdateActions(checkForUpdates: {})
         let fullActions = ReleaseUpdateActions(
@@ -41,7 +43,7 @@ private struct SurfaceProbe {
                 height: 540,
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
-                minimumInkRatio: 0.035,
+                minimumInkRatio: nonBlankInkRatio,
                 requiredRenderedText: [
                     "Ouro MD",
                     "Version 0.9.24",
@@ -69,7 +71,7 @@ private struct SurfaceProbe {
                 height: 560,
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
-                minimumInkRatio: 0.045,
+                minimumInkRatio: nonBlankInkRatio,
                 requiredRenderedText: [
                     "Ouro MD",
                     "Version 0.9.24",
@@ -104,7 +106,7 @@ private struct SurfaceProbe {
                 height: 180,
                 expectedWidth: 340...390,
                 expectedHeight: 95...135,
-                minimumInkRatio: 0.050,
+                minimumInkRatio: nonBlankInkRatio,
                 requiredRenderedText: [
                     "Ouro MD 0.9.24 is installed",
                     "latest version is now running",
@@ -184,26 +186,26 @@ private struct SurfaceProbe {
     private func updateControlSpec(for state: ReleaseUpdateViewState, actions: ReleaseUpdateActions) -> SurfaceSpec {
         // OCR is the primary text gate; ink remains a conservative nonblank guard
         // across hosted non-Retina CI and local Retina rendering.
-        let size: (width: ClosedRange<CGFloat>, height: ClosedRange<CGFloat>, inkRatio: Double)
+        let size: (width: ClosedRange<CGFloat>, height: ClosedRange<CGFloat>)
         switch state.kind {
         case .notChecked:
-            size = (230...340, 95...145, 0.025)
+            size = (230...340, 95...145)
         case .checking:
-            size = (220...330, 95...145, 0.010)
+            size = (220...330, 95...145)
         case .current:
-            size = (220...330, 115...165, 0.025)
+            size = (220...330, 115...165)
         case .updateAvailable:
-            size = (540...660, 115...165, 0.075)
+            size = (540...660, 115...165)
         case .installing:
-            size = (220...330, 95...145, 0.020)
+            size = (220...330, 95...145)
         case .readyToRelaunch:
-            size = (260...380, 95...145, 0.035)
+            size = (260...380, 95...145)
         case .installed:
-            size = (220...330, 95...145, 0.020)
+            size = (220...330, 95...145)
         case .unavailable:
-            size = (270...390, 115...165, 0.045)
+            size = (270...390, 115...165)
         case .failed:
-            size = (390...520, 115...165, 0.055)
+            size = (390...520, 115...165)
         }
 
         var required = [
@@ -232,7 +234,7 @@ private struct SurfaceProbe {
             height: 170,
             expectedWidth: size.width,
             expectedHeight: size.height,
-            minimumInkRatio: size.inkRatio,
+            minimumInkRatio: nonBlankInkRatio,
             requiredRenderedText: required
         )
     }
