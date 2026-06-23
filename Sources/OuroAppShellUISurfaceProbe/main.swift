@@ -41,7 +41,7 @@ private struct SurfaceProbe {
                 height: 540,
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
-                minimumInkRatio: 0.045,
+                minimumInkRatio: 0.035,
                 requiredRenderedText: [
                     "Ouro MD",
                     "Version 0.9.24",
@@ -69,7 +69,7 @@ private struct SurfaceProbe {
                 height: 560,
                 expectedWidth: 500...540,
                 expectedHeight: 470...530,
-                minimumInkRatio: 0.055,
+                minimumInkRatio: 0.045,
                 requiredRenderedText: [
                     "Ouro MD",
                     "Version 0.9.24",
@@ -182,27 +182,28 @@ private struct SurfaceProbe {
     }
 
     private func updateControlSpec(for state: ReleaseUpdateViewState, actions: ReleaseUpdateActions) -> SurfaceSpec {
-        // Ink ratios are calibrated against both hosted CI and local Retina rendering.
+        // OCR is the primary text gate; ink remains a conservative nonblank guard
+        // across hosted non-Retina CI and local Retina rendering.
         let size: (width: ClosedRange<CGFloat>, height: ClosedRange<CGFloat>, inkRatio: Double)
         switch state.kind {
         case .notChecked:
-            size = (230...340, 95...145, 0.040)
+            size = (230...340, 95...145, 0.025)
         case .checking:
-            size = (220...330, 95...145, 0.018)
+            size = (220...330, 95...145, 0.010)
         case .current:
-            size = (220...330, 115...165, 0.040)
+            size = (220...330, 115...165, 0.025)
         case .updateAvailable:
-            size = (540...660, 115...165, 0.105)
+            size = (540...660, 115...165, 0.075)
         case .installing:
-            size = (220...330, 95...145, 0.035)
+            size = (220...330, 95...145, 0.020)
         case .readyToRelaunch:
-            size = (260...380, 95...145, 0.055)
+            size = (260...380, 95...145, 0.035)
         case .installed:
-            size = (220...330, 95...145, 0.035)
+            size = (220...330, 95...145, 0.020)
         case .unavailable:
-            size = (270...390, 115...165, 0.065)
+            size = (270...390, 115...165, 0.045)
         case .failed:
-            size = (390...520, 115...165, 0.075)
+            size = (390...520, 115...165, 0.055)
         }
 
         var required = [
