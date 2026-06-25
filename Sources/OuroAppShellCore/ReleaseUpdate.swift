@@ -199,7 +199,11 @@ public struct ReleaseUpdateChecker: Sendable {
         includePrereleases: Bool = false
     ) throws -> ReleaseUpdateSnapshot {
         let releases = try JSONDecoder().decode([GitHubRelease].self, from: data)
-        guard let latest = releases.first(where: { !$0.draft && (includePrereleases || !$0.prerelease) }) else {
+        let eligibleReleases = releases.filter { !$0.draft && (includePrereleases || !$0.prerelease) }
+        guard let latest = bestEligibleRelease(
+            from: eligibleReleases,
+            assetNamingPolicy: assetNamingPolicy
+        ) else {
             return ReleaseUpdateSnapshot(
                 status: .unavailable,
                 currentVersion: currentVersion,
@@ -278,6 +282,53 @@ public struct ReleaseUpdateChecker: Sendable {
     private static func version(fromTag tagName: String) -> String {
         tagName.hasPrefix("v") ? String(tagName.dropFirst()) : tagName
     }
+
+    private static func bestEligibleRelease(
+        from releases: [GitHubRelease],
+        assetNamingPolicy: ReleaseAssetNamingPolicy
+    ) -> GitHubRelease? {
+        guard let firstRelease = releases.first else {
+            return nil
+        }
+
+        let comparableCandidates = releases.compactMap { release -> GitHubReleaseCandidate? in
+            let version = version(fromTag: release.tagName)
+            guard let semanticVersion = SemanticVersion(version) else {
+                return nil
+            }
+
+            let assetNames = release.assets.map(\.name)
+            let build = assetNamingPolicy.latestBuild(fromAssetNames: assetNames, version: version)
+            return GitHubReleaseCandidate(
+                release: release,
+                version: semanticVersion,
+                build: build.flatMap(Int.init)
+            )
+        }
+
+        guard var best = comparableCandidates.first else {
+            return firstRelease
+        }
+
+        for candidate in comparableCandidates.dropFirst() {
+            if isReleaseIdentity(candidate, newerThan: best) {
+                best = candidate
+            }
+        }
+
+        return best.release
+    }
+
+    private static func isReleaseIdentity(
+        _ candidate: GitHubReleaseCandidate,
+        newerThan current: GitHubReleaseCandidate
+    ) -> Bool {
+        if candidate.version != current.version {
+            return candidate.version > current.version
+        }
+
+        return (candidate.build ?? -1) > (current.build ?? -1)
+    }
 }
 
 public enum ReleaseUpdateError: Error, Equatable, LocalizedError, Sendable {
@@ -321,4 +372,10 @@ private struct GitHubReleaseAsset: Decodable {
         case browserDownloadURL = "browser_download_url"
         case size
     }
+}
+
+private struct GitHubReleaseCandidate {
+    var release: GitHubRelease
+    var version: SemanticVersion
+    var build: Int?
 }
