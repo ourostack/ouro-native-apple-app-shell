@@ -188,17 +188,28 @@ public struct ReleaseUpdateActionLabels: Equatable, Sendable {
     public var check: String
     public var review: String
     public var install: String
+    public var relaunch: String
     public var openRelease: String
 
     public init(
         check: String = "Check for Updates...",
         review: String = "Review Update",
         install: String = "Install & Relaunch",
+        relaunch: String = "Relaunch to Update",
         openRelease: String = "View Release Notes"
     ) {
         self.check = check
         self.review = review
         self.install = install
+        self.relaunch = relaunch
         self.openRelease = openRelease
+    }
+
+    public func installActionLabel(for kind: ReleaseUpdateStateKind) -> String {
+        kind == .readyToRelaunch ? relaunch : install
+    }
+
+    public func installActionAccessibilityLabel(for kind: ReleaseUpdateStateKind) -> String {
+        kind == .readyToRelaunch ? "Relaunch to update" : "Install and relaunch"
     }
 }
