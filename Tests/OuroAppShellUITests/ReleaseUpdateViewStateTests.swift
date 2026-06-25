@@ -70,13 +70,24 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
             check: "Check",
             review: "Review",
             install: "Install",
+            relaunch: "Relaunch",
             openRelease: "Open"
         )
 
         XCTAssertEqual(labels.check, "Check")
         XCTAssertEqual(labels.review, "Review")
         XCTAssertEqual(labels.install, "Install")
+        XCTAssertEqual(labels.relaunch, "Relaunch")
         XCTAssertEqual(labels.openRelease, "Open")
+    }
+
+    func testReadyToRelaunchUsesRelaunchActionCopy() {
+        let labels = ReleaseUpdateActionLabels()
+
+        XCTAssertEqual(labels.installActionLabel(for: .updateAvailable), "Install & Relaunch")
+        XCTAssertEqual(labels.installActionAccessibilityLabel(for: .updateAvailable), "Install and relaunch")
+        XCTAssertEqual(labels.installActionLabel(for: .readyToRelaunch), "Relaunch to Update")
+        XCTAssertEqual(labels.installActionAccessibilityLabel(for: .readyToRelaunch), "Relaunch to update")
     }
 
     func testViewStateCanDeriveFromCurrentSnapshot() {

@@ -159,13 +159,17 @@ public struct ReleaseUpdateControls: View {
             Button {
                 installAndRelaunch()
             } label: {
-                Label(labels.install, systemImage: "arrow.down.app.fill")
+                Label(labels.installActionLabel(for: state.kind), systemImage: installActionSystemImage)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
             .disabled(state.kind == .installing)
-            .accessibilityLabel("Install and relaunch")
+            .accessibilityLabel(labels.installActionAccessibilityLabel(for: state.kind))
         }
+    }
+
+    private var installActionSystemImage: String {
+        state.kind == .readyToRelaunch ? "arrow.clockwise.circle.fill" : "arrow.down.app.fill"
     }
 
     @ViewBuilder

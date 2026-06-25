@@ -222,11 +222,12 @@ private struct SurfaceProbe {
             required.append(ReleaseUpdateActionLabels().review)
         }
         if state.canInstallUpdate {
-            required.append(ReleaseUpdateActionLabels().install)
+            required.append(ReleaseUpdateActionLabels().installActionLabel(for: state.kind))
         }
         if state.canOpenReleasePage {
             required.append(ReleaseUpdateActionLabels().openRelease)
         }
+        let forbidden = state.kind == .readyToRelaunch ? [ReleaseUpdateActionLabels().install] : []
 
         return SurfaceSpec(
             name: "updates-\(state.kind.rawValue)",
@@ -235,7 +236,8 @@ private struct SurfaceProbe {
             expectedWidth: size.width,
             expectedHeight: size.height,
             minimumInkRatio: nonBlankInkRatio,
-            requiredRenderedText: required
+            requiredRenderedText: required,
+            forbiddenRenderedText: forbidden
         )
     }
 
@@ -295,6 +297,9 @@ private struct SurfaceProbe {
         let renderedText = recognizeText(in: renderedSurface.image)
         for token in spec.requiredRenderedText where !renderedTextContains(renderedText, token) {
             throw ProbeFailure.missingRenderedText(name: spec.name, token: token, recognizedText: renderedText)
+        }
+        for token in spec.forbiddenRenderedText where renderedTextContains(renderedText, token) {
+            throw ProbeFailure.unexpectedRenderedText(name: spec.name, token: token, recognizedText: renderedText)
         }
 
         print(
@@ -410,6 +415,7 @@ private struct SurfaceSpec {
     var expectedHeight: ClosedRange<CGFloat>
     var minimumInkRatio: Double
     var requiredRenderedText: [String]
+    var forbiddenRenderedText: [String] = []
 }
 
 private extension ReleaseUpdateViewState {
@@ -471,6 +477,7 @@ private enum ProbeFailure: Error, CustomStringConvertible {
     case insufficientRender(name: String, nonBlankPixels: Int, totalPixels: Int, ratio: Double, minimumRatio: Double)
     case missingBitmap(name: String)
     case missingRenderedText(name: String, token: String, recognizedText: Set<String>)
+    case unexpectedRenderedText(name: String, token: String, recognizedText: Set<String>)
 
     var description: String {
         switch self {
@@ -483,6 +490,9 @@ private enum ProbeFailure: Error, CustomStringConvertible {
         case let .missingRenderedText(name, token, recognizedText):
             let observed = recognizedText.sorted().joined(separator: " | ")
             return "\(name) missing rendered text token: \(token); recognized: \(observed)"
+        case let .unexpectedRenderedText(name, token, recognizedText):
+            let observed = recognizedText.sorted().joined(separator: " | ")
+            return "\(name) rendered forbidden text token: \(token); recognized: \(observed)"
         }
     }
 }
