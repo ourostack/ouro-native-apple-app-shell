@@ -1,0 +1,35 @@
+name: Downstream Live Main
+
+on:
+  schedule:
+    - cron: '17 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  downstream-live-consumers:
+    name: Downstream / live-main / ${{ matrix.consumer }}
+    runs-on: macos-14
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        consumer:
+          - ouro-md
+          - ouro-workbench
+    steps:
+      - uses: actions/checkout@v6
+      - name: Select newest Xcode
+        run: |
+          latest="$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)"
+          [ -n "$latest" ] || latest="$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          swift --version
+          xcodebuild -version
+      - name: Run live-main downstream consumer smoke
+        env:
+          OURO_DOWNSTREAM_WORK_ROOT: ${{ runner.temp }}/ouro-downstream-live-consumers
+          OURO_DOWNSTREAM_CONSUMER_REF_MODE: live
+        run: scripts/check-downstream-consumers.sh --consumer "${{ matrix.consumer }}"

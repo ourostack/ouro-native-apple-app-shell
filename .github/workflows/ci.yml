@@ -70,4 +70,5 @@ jobs:
       - name: Run downstream consumer smoke
         env:
           OURO_DOWNSTREAM_WORK_ROOT: ${{ runner.temp }}/ouro-downstream-consumers
+          OURO_DOWNSTREAM_CONSUMER_REF_MODE: pinned
         run: scripts/check-downstream-consumers.sh --consumer "${{ matrix.consumer }}"
