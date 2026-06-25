@@ -113,6 +113,54 @@ final class ReleaseUpdateTests: XCTestCase {
         XCTAssertEqual(prerelease.tagName, "v9.0.0-beta.1")
     }
 
+    func testSnapshotSelectsHighestComparableStableReleaseInsteadOfAPIOrder() throws {
+        let data = Data("""
+        [
+          {"tag_name":"v0.9.1","html_url":"https://example.test/older","draft":false,"prerelease":false,"assets":[]},
+          {"tag_name":"v0.10.0","html_url":"https://example.test/newer","draft":false,"prerelease":false,"assets":[]}
+        ]
+        """.utf8)
+
+        let snapshot = try ReleaseUpdateChecker.snapshot(from: data, currentVersion: "0.9.0")
+
+        XCTAssertEqual(snapshot.status, .updateAvailable)
+        XCTAssertEqual(snapshot.latestVersion, "0.10.0")
+        XCTAssertEqual(snapshot.tagName, "v0.10.0")
+        XCTAssertEqual(snapshot.htmlURL, "https://example.test/newer")
+    }
+
+    func testSnapshotSkipsMalformedEligibleReleaseWhenComparableLaterReleaseExists() throws {
+        let data = Data("""
+        [
+          {"tag_name":"banana","html_url":"https://example.test/banana","draft":false,"prerelease":false,"assets":[]},
+          {"tag_name":"v0.10.0","html_url":"https://example.test/newer","draft":false,"prerelease":false,"assets":[]}
+        ]
+        """.utf8)
+
+        let snapshot = try ReleaseUpdateChecker.snapshot(from: data, currentVersion: "0.9.0")
+
+        XCTAssertEqual(snapshot.status, .updateAvailable)
+        XCTAssertEqual(snapshot.latestVersion, "0.10.0")
+        XCTAssertEqual(snapshot.tagName, "v0.10.0")
+        XCTAssertEqual(snapshot.detail, "Version 0.10.0 is available.")
+    }
+
+    func testSnapshotKeepsFirstComparableReleaseWhenVersionAndBuildAreTied() throws {
+        let data = Data("""
+        [
+          {"tag_name":"v0.10.0","html_url":"https://example.test/first","draft":false,"prerelease":false,"assets":[]},
+          {"tag_name":"v0.10.0","html_url":"https://example.test/second","draft":false,"prerelease":false,"assets":[]}
+        ]
+        """.utf8)
+
+        let snapshot = try ReleaseUpdateChecker.snapshot(from: data, currentVersion: "0.9.0")
+
+        XCTAssertEqual(snapshot.status, .updateAvailable)
+        XCTAssertEqual(snapshot.latestVersion, "0.10.0")
+        XCTAssertNil(snapshot.latestBuild)
+        XCTAssertEqual(snapshot.htmlURL, "https://example.test/first")
+    }
+
     func testSnapshotReportsCurrentUnavailableAndNoPublishedRelease() throws {
         let currentData = Data("""
         [{"tag_name":"v0.9.0","html_url":"https://example.test/current","draft":false,"prerelease":false,"assets":[]}]
@@ -177,6 +225,55 @@ final class ReleaseUpdateTests: XCTestCase {
         XCTAssertEqual(snapshot.latestReleaseLabel, "Version 0.1.155 (build 340)")
         XCTAssertEqual(snapshot.latestReleaseLabelForPrompt, "0.1.155 (build 340)")
         XCTAssertTrue(snapshot.hasInstallableAssets)
+        XCTAssertEqual(snapshot.installableAssets.map(\.name), [
+            "OuroWorkbench-0.1.155-build.340-cdf1190.zip",
+            "OuroWorkbench-0.1.155-build.340-cdf1190.manifest.json"
+        ])
+    }
+
+    func testWorkbenchSnapshotSelectsBestBuildAwareReleaseInsteadOfAPIOrder() throws {
+        let data = Data("""
+        [
+          {
+            "tag_name": "v0.1.155",
+            "html_url": "https://github.com/ourostack/ouro-workbench/releases/tag/v0.1.155-build-239",
+            "draft": false,
+            "prerelease": true,
+            "assets": [
+              {"name": "OuroWorkbench-0.1.155-build.239-deadbee.zip", "browser_download_url": "https://example.test/old.zip", "size": 100},
+              {"name": "OuroWorkbench-0.1.155-build.239-deadbee.manifest.json", "browser_download_url": "https://example.test/old.manifest.json", "size": 50}
+            ]
+          },
+          {
+            "tag_name": "v0.1.155",
+            "html_url": "https://github.com/ourostack/ouro-workbench/releases/tag/v0.1.155",
+            "draft": false,
+            "prerelease": true,
+            "assets": [
+              {"name": "OuroWorkbench-0.1.155-build.340-cdf1190.zip", "browser_download_url": "https://example.test/app.zip", "size": 100},
+              {"name": "OuroWorkbench-0.1.155-build.340-cdf1190.manifest.json", "browser_download_url": "https://example.test/manifest.json", "size": 50}
+            ]
+          }
+        ]
+        """.utf8)
+        let configuration = ReleaseUpdateConfiguration(
+            identity: AppShellIdentity(
+                appName: "Ouro Workbench",
+                bundleIdentifier: "com.ourostack.workbench",
+                repository: "ourostack/ouro-workbench",
+                version: "0.1.155",
+                build: "300",
+                userAgent: "OuroWorkbench/0.1.155"
+            ),
+            releasePolicy: .workbench()
+        )
+
+        let snapshot = try ReleaseUpdateChecker.snapshot(from: data, configuration: configuration)
+
+        XCTAssertEqual(snapshot.status, .updateAvailable)
+        XCTAssertEqual(snapshot.latestVersion, "0.1.155")
+        XCTAssertEqual(snapshot.latestBuild, "340")
+        XCTAssertEqual(snapshot.tagName, "v0.1.155")
         XCTAssertEqual(snapshot.installableAssets.map(\.name), [
             "OuroWorkbench-0.1.155-build.340-cdf1190.zip",
             "OuroWorkbench-0.1.155-build.340-cdf1190.manifest.json"
