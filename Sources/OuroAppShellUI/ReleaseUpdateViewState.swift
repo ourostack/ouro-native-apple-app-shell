@@ -138,7 +138,7 @@ public struct ReleaseUpdateViewState: Equatable, Sendable {
                 kind: .updateAvailable,
                 statusLine: snapshot.detail,
                 metadata: metadata(from: snapshot, channel: channel),
-                detail: canInstall ? "The archive and manifest are present." : plan.failureDescription,
+                detail: plan.displayDetail,
                 canReviewUpdate: true,
                 canInstallUpdate: canInstall,
                 canOpenReleasePage: snapshot.htmlURL != nil
@@ -176,11 +176,13 @@ private extension Result where Failure == AppUpdatePlanError {
         return true
     }
 
-    var failureDescription: String {
-        guard case let .failure(error) = self else {
-            return ""
+    var displayDetail: String {
+        switch self {
+        case .success:
+            return "The archive and manifest are present."
+        case let .failure(error):
+            return error.localizedDescription
         }
-        return error.localizedDescription
     }
 }
 
