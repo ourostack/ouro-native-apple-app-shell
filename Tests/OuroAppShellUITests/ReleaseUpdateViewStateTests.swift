@@ -160,4 +160,25 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
         XCTAssertFalse(state.canInstallUpdate)
         XCTAssertFalse(state.canOpenReleasePage)
     }
+
+    func testViewStateCanDeriveUnavailableSnapshot() {
+        let snapshot = ReleaseUpdateSnapshot(
+            status: .unavailable,
+            currentVersion: "0.9.24",
+            latestVersion: nil,
+            tagName: nil,
+            htmlURL: "https://example.test/releases",
+            assets: [],
+            detail: "Release metadata is unavailable."
+        )
+
+        let state = ReleaseUpdateViewState.from(snapshot: snapshot, channel: "Developer ID")
+
+        XCTAssertEqual(state.kind, .unavailable)
+        XCTAssertEqual(state.statusLine, "Release metadata is unavailable.")
+        XCTAssertEqual(state.metadata.map(\.value), ["0.9.24", "Developer ID"])
+        XCTAssertTrue(state.canOpenReleasePage)
+        XCTAssertFalse(state.canReviewUpdate)
+        XCTAssertFalse(state.canInstallUpdate)
+    }
 }
