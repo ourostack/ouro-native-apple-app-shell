@@ -4,11 +4,38 @@ public struct SemanticVersion: Comparable, Equatable, Sendable {
     public var major: Int
     public var minor: Int
     public var patch: Int
+    public var prereleaseIdentifiers: [PrereleaseIdentifier]
+
+    public enum PrereleaseIdentifier: Comparable, Equatable, Sendable {
+        case numeric(Int)
+        case text(String)
+
+        public static func < (lhs: PrereleaseIdentifier, rhs: PrereleaseIdentifier) -> Bool {
+            switch (lhs, rhs) {
+            case let (.numeric(left), .numeric(right)):
+                return left < right
+            case (.numeric, .text):
+                return true
+            case (.text, .numeric):
+                return false
+            case let (.text(left), .text(right)):
+                return left < right
+            }
+        }
+    }
 
     public init?(_ value: String) {
-        let core = value.split(separator: "-", maxSplits: 1).first.map(String.init) ?? value
-        let parts = core.split(separator: ".")
+        let metadataSplit = value.split(separator: "+", maxSplits: 1, omittingEmptySubsequences: false)
+        guard let versionAndPrerelease = metadataSplit.first, !versionAndPrerelease.isEmpty else {
+            return nil
+        }
+        let components = versionAndPrerelease.split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+        guard let core = components.first, !core.isEmpty else {
+            return nil
+        }
+        let parts = core.split(separator: ".", omittingEmptySubsequences: false)
         guard parts.count == 3,
+              parts.allSatisfy({ !$0.isEmpty && $0.allSatisfy(\.isNumber) }),
               let major = Int(parts[0]),
               let minor = Int(parts[1]),
               let patch = Int(parts[2])
@@ -18,6 +45,28 @@ public struct SemanticVersion: Comparable, Equatable, Sendable {
         self.major = major
         self.minor = minor
         self.patch = patch
+        if components.count == 2 {
+            let identifiers = components[1].split(separator: ".", omittingEmptySubsequences: false).map(String.init)
+            guard !identifiers.isEmpty, identifiers.allSatisfy({ !$0.isEmpty }) else {
+                return nil
+            }
+            var parsedIdentifiers: [PrereleaseIdentifier] = []
+            for identifier in identifiers {
+                if identifier.allSatisfy(\.isNumber) {
+                    guard (identifier == "0" || !identifier.hasPrefix("0")),
+                          let numeric = Int(identifier)
+                    else {
+                        return nil
+                    }
+                    parsedIdentifiers.append(.numeric(numeric))
+                } else {
+                    parsedIdentifiers.append(.text(identifier))
+                }
+            }
+            prereleaseIdentifiers = parsedIdentifiers
+        } else {
+            prereleaseIdentifiers = []
+        }
     }
 
     public static func < (lhs: SemanticVersion, rhs: SemanticVersion) -> Bool {
@@ -27,7 +76,18 @@ public struct SemanticVersion: Comparable, Equatable, Sendable {
         if lhs.minor != rhs.minor {
             return lhs.minor < rhs.minor
         }
-        return lhs.patch < rhs.patch
+        if lhs.patch != rhs.patch {
+            return lhs.patch < rhs.patch
+        }
+        if lhs.prereleaseIdentifiers.isEmpty || rhs.prereleaseIdentifiers.isEmpty {
+            return !lhs.prereleaseIdentifiers.isEmpty && rhs.prereleaseIdentifiers.isEmpty
+        }
+        for (left, right) in zip(lhs.prereleaseIdentifiers, rhs.prereleaseIdentifiers) {
+            if left != right {
+                return left < right
+            }
+        }
+        return lhs.prereleaseIdentifiers.count < rhs.prereleaseIdentifiers.count
     }
 }
 

@@ -113,6 +113,47 @@ final class ReleaseUpdateTests: XCTestCase {
         XCTAssertEqual(prerelease.tagName, "v9.0.0-beta.1")
     }
 
+    func testSnapshotTreatsStableSameCoreReleaseAsNewerThanCurrentPrerelease() throws {
+        let data = Data("""
+        [
+          {"tag_name":"v1.2.3-beta.1","html_url":"https://example.test/beta","draft":false,"prerelease":true,"assets":[]},
+          {"tag_name":"v1.2.3","html_url":"https://example.test/stable","draft":false,"prerelease":false,"assets":[]}
+        ]
+        """.utf8)
+
+        let snapshot = try ReleaseUpdateChecker.snapshot(
+            from: data,
+            currentVersion: "1.2.3-beta.1",
+            includePrereleases: true
+        )
+
+        XCTAssertEqual(snapshot.status, .updateAvailable)
+        XCTAssertEqual(snapshot.latestVersion, "1.2.3")
+        XCTAssertEqual(snapshot.tagName, "v1.2.3")
+        XCTAssertEqual(snapshot.htmlURL, "https://example.test/stable")
+    }
+
+    func testSnapshotSelectsStableSameCoreReleaseInsteadOfPrereleaseAPIOrder() throws {
+        let data = Data("""
+        [
+          {"tag_name":"v1.2.3-beta.2","html_url":"https://example.test/beta2","draft":false,"prerelease":true,"assets":[]},
+          {"tag_name":"v1.2.3","html_url":"https://example.test/stable","draft":false,"prerelease":false,"assets":[]},
+          {"tag_name":"v1.2.3-beta.11","html_url":"https://example.test/beta11","draft":false,"prerelease":true,"assets":[]}
+        ]
+        """.utf8)
+
+        let snapshot = try ReleaseUpdateChecker.snapshot(
+            from: data,
+            currentVersion: "1.2.3-beta.1",
+            includePrereleases: true
+        )
+
+        XCTAssertEqual(snapshot.status, .updateAvailable)
+        XCTAssertEqual(snapshot.latestVersion, "1.2.3")
+        XCTAssertEqual(snapshot.tagName, "v1.2.3")
+        XCTAssertEqual(snapshot.htmlURL, "https://example.test/stable")
+    }
+
     func testSnapshotSelectsHighestComparableStableReleaseInsteadOfAPIOrder() throws {
         let data = Data("""
         [
