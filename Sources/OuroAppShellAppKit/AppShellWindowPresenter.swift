@@ -8,6 +8,8 @@ public struct AppShellWindowSpec: Equatable {
     public var title: String
     public var width: CGFloat
     public var height: CGFloat
+    public var minWidth: CGFloat?
+    public var minHeight: CGFloat?
     public var styleMask: NSWindow.StyleMask
     public var shouldCenter: Bool
     public var shouldActivateApp: Bool
@@ -16,6 +18,8 @@ public struct AppShellWindowSpec: Equatable {
         title: String,
         width: CGFloat,
         height: CGFloat,
+        minWidth: CGFloat? = nil,
+        minHeight: CGFloat? = nil,
         styleMask: NSWindow.StyleMask = [.titled, .closable],
         shouldCenter: Bool = true,
         shouldActivateApp: Bool = true
@@ -23,6 +27,8 @@ public struct AppShellWindowSpec: Equatable {
         self.title = title
         self.width = width
         self.height = height
+        self.minWidth = minWidth
+        self.minHeight = minHeight
         self.styleMask = styleMask
         self.shouldCenter = shouldCenter
         self.shouldActivateApp = shouldActivateApp
@@ -43,8 +49,8 @@ public final class AppShellWindowPresenter {
     ) -> NSWindow {
         let window = windows[id] ?? makeWindow(spec: spec)
         windows[id] = window
-        window.title = spec.title
         window.contentViewController = NSHostingController(rootView: content())
+        apply(spec: spec, to: window)
         window.makeKeyAndOrderFront(nil)
         if spec.shouldActivateApp {
             NSApp.activate(ignoringOtherApps: true)
@@ -72,7 +78,16 @@ public final class AppShellWindowPresenter {
         if spec.shouldCenter {
             window.center()
         }
+        apply(spec: spec, to: window)
         return window
+    }
+
+    private func apply(spec: AppShellWindowSpec, to window: NSWindow) {
+        window.title = spec.title
+        window.styleMask = spec.styleMask
+        if let minWidth = spec.minWidth, let minHeight = spec.minHeight {
+            window.minSize = NSSize(width: minWidth, height: minHeight)
+        }
     }
 }
 #endif
