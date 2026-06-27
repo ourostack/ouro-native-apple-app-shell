@@ -25,6 +25,8 @@ jobs:
           xcodebuild -version
       - name: Resolve package
         run: swift package resolve
+      - name: Run shell boundary scanner selftest
+        run: scripts/check-shell-boundary.sh --selftest
       - name: Run strict tests
         run: swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
       - name: Run UI surface probe

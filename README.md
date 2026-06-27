@@ -9,12 +9,16 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 
 - `OuroAppShellCore`: pure, testable app identity, release/update, and
   distribution-channel logic shared by native Ouro apps.
+- `OuroAppShellAppKit`: small macOS runtime helpers for reusable utility-window
+  presentation.
 - `OuroAppShellUI`: SwiftUI About, What's New, release update, and update
-  confirmation surfaces that apps drive through value state and action closures.
+  confirmation / command-reference surfaces that apps drive through value state
+  and action closures.
 
 ## Validation
 
 - `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`
+- `scripts/check-shell-boundary.sh --selftest`
 - `scripts/check-coverage.sh`
 - `scripts/ui-surface-probe.sh`
 - `scripts/check-downstream-consumers.sh`
@@ -30,3 +34,6 @@ The downstream consumer check clones Ouro MD and Ouro Workbench into
 SwiftPM dependency to this checkout, then runs each app's build/test/UI smoke.
 That catches shell changes that compile locally but break the next consumer
 resolution.
+
+See [docs/shell-boundary.md](docs/shell-boundary.md) for the ownership contract
+used by consumers and CI.

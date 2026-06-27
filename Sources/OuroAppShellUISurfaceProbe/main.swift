@@ -121,6 +121,34 @@ private struct SurfaceProbe {
                 onDismiss: {}
             )
         )
+
+        try measure(
+            spec: SurfaceSpec(
+                name: "command-reference",
+                width: 620,
+                height: 680,
+                expectedWidth: 520...580,
+                expectedHeight: 500...640,
+                minimumInkRatio: nonBlankInkRatio,
+                requiredRenderedText: [
+                    "Keyboard Shortcuts",
+                    "Search commands",
+                    "Open Document",
+                    "Command Palette",
+                    "Keyboard Shortcuts",
+                    "File",
+                    "Edit",
+                    "Help",
+                    "Done"
+                ]
+            ),
+            AppShellCommandReferenceView(
+                subtitle: "Press Command Slash from anywhere to bring this back.",
+                items: commandReferenceItems,
+                preferredSectionOrder: ["File", "Edit", "Help"],
+                onDone: {}
+            )
+        )
     }
 
     private var aboutModel: AppShellAboutModel {
@@ -181,6 +209,14 @@ private struct SurfaceProbe {
         let plan = AppUpdatePlanner.plan(from: snapshot)
 
         return ReleaseUpdateViewState.from(snapshot: snapshot, installPlan: plan)
+    }
+
+    private var commandReferenceItems: [AppShellCommandReferenceItem] {
+        [
+            AppShellCommandReferenceItem(id: "file.open", title: "Open Document", section: "File", shortcut: "⌘O", keywords: "file picker"),
+            AppShellCommandReferenceItem(id: "edit.palette", title: "Command Palette", section: "Edit", shortcut: "⇧⌘P", keywords: "commands power user"),
+            AppShellCommandReferenceItem(id: "help.shortcuts", title: "Keyboard Shortcuts", section: "Help", shortcut: "⌘?", keywords: "reference")
+        ]
     }
 
     private func updateControlSpec(for state: ReleaseUpdateViewState, actions: ReleaseUpdateActions) -> SurfaceSpec {
