@@ -9,11 +9,16 @@ let package = Package(
     ],
     products: [
         .library(name: "OuroAppShellCore", targets: ["OuroAppShellCore"]),
+        .library(name: "OuroAppShellAppKit", targets: ["OuroAppShellAppKit"]),
         .library(name: "OuroAppShellUI", targets: ["OuroAppShellUI"]),
         .executable(name: "OuroAppShellUISurfaceProbe", targets: ["OuroAppShellUISurfaceProbe"])
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
+        .target(
+            name: "OuroAppShellAppKit",
+            dependencies: ["OuroAppShellUI"]
+        ),
         .target(
             name: "OuroAppShellUI",
             dependencies: ["OuroAppShellCore"]
@@ -24,7 +29,7 @@ let package = Package(
         ),
         .testTarget(
             name: "OuroAppShellCoreTests",
-            dependencies: ["OuroAppShellCore"]
+            dependencies: ["OuroAppShellCore", "OuroAppShellAppKit"]
         ),
         .testTarget(
             name: "OuroAppShellUITests",
