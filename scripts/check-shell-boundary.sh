@@ -125,7 +125,7 @@ for pattern in "${rules[@]}"; do
       continue
     fi
     violations+=("$rel"$'\t'"$pattern")
-  done < <(rg -n --fixed-strings "$pattern" "$REPO/Sources" 2>/dev/null || true)
+  done < <(grep -R -n -F -- "$pattern" "$REPO/Sources" 2>/dev/null || true)
 done
 
 if [ "${#violations[@]}" -gt 0 ]; then
