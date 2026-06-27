@@ -8,8 +8,7 @@ public struct AppShellWindowSpec: Equatable {
     public var title: String
     public var width: CGFloat
     public var height: CGFloat
-    public var minWidth: CGFloat?
-    public var minHeight: CGFloat?
+    public var minSize: NSSize?
     public var styleMask: NSWindow.StyleMask
     public var shouldCenter: Bool
     public var shouldActivateApp: Bool
@@ -18,8 +17,7 @@ public struct AppShellWindowSpec: Equatable {
         title: String,
         width: CGFloat,
         height: CGFloat,
-        minWidth: CGFloat? = nil,
-        minHeight: CGFloat? = nil,
+        minSize: NSSize? = nil,
         styleMask: NSWindow.StyleMask = [.titled, .closable],
         shouldCenter: Bool = true,
         shouldActivateApp: Bool = true
@@ -27,8 +25,7 @@ public struct AppShellWindowSpec: Equatable {
         self.title = title
         self.width = width
         self.height = height
-        self.minWidth = minWidth
-        self.minHeight = minHeight
+        self.minSize = minSize
         self.styleMask = styleMask
         self.shouldCenter = shouldCenter
         self.shouldActivateApp = shouldActivateApp
@@ -85,9 +82,7 @@ public final class AppShellWindowPresenter {
     private func apply(spec: AppShellWindowSpec, to window: NSWindow) {
         window.title = spec.title
         window.styleMask = spec.styleMask
-        if let minWidth = spec.minWidth, let minHeight = spec.minHeight {
-            window.minSize = NSSize(width: minWidth, height: minHeight)
-        }
+        window.minSize = spec.minSize ?? .zero
     }
 }
 #endif

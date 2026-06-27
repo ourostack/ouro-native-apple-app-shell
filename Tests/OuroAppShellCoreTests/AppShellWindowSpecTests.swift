@@ -10,8 +10,7 @@ final class AppShellWindowSpecTests: XCTestCase {
             XCTAssertEqual(defaults.title, "About")
             XCTAssertEqual(defaults.width, 520)
             XCTAssertEqual(defaults.height, 500)
-            XCTAssertNil(defaults.minWidth)
-            XCTAssertNil(defaults.minHeight)
+            XCTAssertNil(defaults.minSize)
             XCTAssertTrue(defaults.styleMask.contains(.titled))
             XCTAssertTrue(defaults.styleMask.contains(.closable))
             XCTAssertTrue(defaults.shouldCenter)
@@ -21,14 +20,12 @@ final class AppShellWindowSpecTests: XCTestCase {
                 title: "Progress",
                 width: 420,
                 height: 160,
-                minWidth: 400,
-                minHeight: 140,
+                minSize: NSSize(width: 400, height: 140),
                 styleMask: [.titled],
                 shouldCenter: false,
                 shouldActivateApp: false
             )
-            XCTAssertEqual(custom.minWidth, 400)
-            XCTAssertEqual(custom.minHeight, 140)
+            XCTAssertEqual(custom.minSize, NSSize(width: 400, height: 140))
             XCTAssertEqual(custom.styleMask, [.titled])
             XCTAssertFalse(custom.shouldCenter)
             XCTAssertFalse(custom.shouldActivateApp)
@@ -44,8 +41,7 @@ final class AppShellWindowSpecTests: XCTestCase {
                     title: "Keyboard Shortcuts",
                     width: 560,
                     height: 620,
-                    minWidth: 520,
-                    minHeight: 500,
+                    minSize: NSSize(width: 520, height: 500),
                     styleMask: [.titled, .closable, .resizable],
                     shouldCenter: false,
                     shouldActivateApp: false
@@ -63,8 +59,7 @@ final class AppShellWindowSpecTests: XCTestCase {
                     title: "Commands",
                     width: 560,
                     height: 620,
-                    minWidth: 540,
-                    minHeight: 510,
+                    minSize: NSSize(width: 540, height: 510),
                     styleMask: [.titled, .closable],
                     shouldCenter: false,
                     shouldActivateApp: false
@@ -80,6 +75,45 @@ final class AppShellWindowSpecTests: XCTestCase {
 
             presenter.close(id: "shortcuts")
             XCTAssertEqual(presenter.window(for: "shortcuts"), second)
+        }
+    }
+
+    func testPresenterClearsMinSizeWhenReusedSpecOmitsIt() async {
+        await MainActor.run {
+            let presenter = AppShellWindowPresenter()
+            let first = presenter.present(
+                id: "utility",
+                spec: AppShellWindowSpec(
+                    title: "Resizable",
+                    width: 560,
+                    height: 620,
+                    minSize: NSSize(width: 520, height: 500),
+                    styleMask: [.titled, .closable, .resizable],
+                    shouldCenter: false,
+                    shouldActivateApp: false
+                )
+            ) {
+                EmptyView()
+            }
+            XCTAssertEqual(first.minSize, NSSize(width: 520, height: 500))
+
+            let second = presenter.present(
+                id: "utility",
+                spec: AppShellWindowSpec(
+                    title: "Unconstrained",
+                    width: 360,
+                    height: 140,
+                    shouldCenter: false,
+                    shouldActivateApp: false
+                )
+            ) {
+                Text("Small")
+            }
+
+            XCTAssertTrue(first === second)
+            XCTAssertEqual(second.minSize.width, 0)
+            XCTAssertLessThan(second.minSize.height, 500)
+            presenter.close(id: "utility")
         }
     }
 }
