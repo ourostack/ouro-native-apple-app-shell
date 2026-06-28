@@ -148,6 +148,8 @@ EOF
 
   if [ -d "$dir/.git" ]; then
     run git -C "$dir" remote set-url origin "$url"
+    run git -C "$dir" reset --hard
+    run git -C "$dir" clean -fdx
   else
     rm -rf "$dir"
     mkdir -p "$dir"

@@ -18,10 +18,20 @@ public struct ReleaseUpdatePolicy: Codable, Equatable, Sendable {
         ReleaseUpdatePolicy(assetNamingPolicy: assetNamingPolicy, includePrereleases: false)
     }
 
-    public static func workbench(namePrefix: String = "OuroWorkbench-") -> ReleaseUpdatePolicy {
+    public static func buildMatchedPrerelease(
+        namePrefix: String,
+        buildMarker: String = "-build."
+    ) -> ReleaseUpdatePolicy {
         ReleaseUpdatePolicy(
-            assetNamingPolicy: .workbench(namePrefix: namePrefix),
+            assetNamingPolicy: .buildMatchedArchiveAndManifest(
+                namePrefix: namePrefix,
+                buildMarker: buildMarker
+            ),
             includePrereleases: true
         )
+    }
+
+    public static func workbench(namePrefix: String = "OuroWorkbench-") -> ReleaseUpdatePolicy {
+        buildMatchedPrerelease(namePrefix: namePrefix, buildMarker: "-build.")
     }
 }

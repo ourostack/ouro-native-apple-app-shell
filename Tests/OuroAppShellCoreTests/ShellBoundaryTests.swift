@@ -22,12 +22,12 @@ final class ShellBoundaryTests: XCTestCase {
     func testBoundaryOwnersClassifyAdaptersAndApps() {
         XCTAssertEqual(AppShellBoundary.owner(for: .settings).owner, .adapter)
         XCTAssertEqual(AppShellBoundary.owner(for: .telemetry).owner, .adapter)
-        XCTAssertEqual(AppShellBoundary.owner(for: .documentEditing).owner, .app)
+        XCTAssertEqual(AppShellBoundary.owner(for: .primaryContent).owner, .app)
         XCTAssertEqual(AppShellBoundary.owner(for: .domainWorkflow).owner, .app)
 
         XCTAssertTrue(AppShellBoundary.requiresShellFirstDesign(.settings))
         XCTAssertTrue(AppShellBoundary.requiresShellFirstDesign(.telemetry))
-        XCTAssertFalse(AppShellBoundary.requiresShellFirstDesign(.documentEditing))
+        XCTAssertFalse(AppShellBoundary.requiresShellFirstDesign(.primaryContent))
         XCTAssertFalse(AppShellBoundary.requiresShellFirstDesign(.domainWorkflow))
     }
 

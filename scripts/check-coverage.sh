@@ -11,6 +11,10 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 CORE_DIR="Sources/OuroAppShellCore"
+CONTRACT_DIRS=(
+  "Sources/OuroAppShellContract"
+  "Sources/OuroAppShellConsumerTesting"
+)
 UI_CONTRACT_FILES=(
   "Sources/OuroAppShellUI/AppShellAboutModel.swift"
   "Sources/OuroAppShellUI/ReleaseUpdateViewState.swift"
@@ -34,13 +38,15 @@ if [ -z "$bin" ] || [ -z "$prof" ]; then
   exit 1
 fi
 
-xcrun llvm-cov export "$bin" -instr-profile "$prof" -summary-only "$CORE_DIR" "${UI_CONTRACT_FILES[@]}" > .build/ouro-app-shell-coverage.json
+xcrun llvm-cov export "$bin" -instr-profile "$prof" -summary-only "$CORE_DIR" "${CONTRACT_DIRS[@]}" "${UI_CONTRACT_FILES[@]}" > .build/ouro-app-shell-coverage.json
 
-python3 - "$CORE_DIR" "${UI_CONTRACT_FILES[@]}" <<'PY'
+python3 - "$CORE_DIR" "${CONTRACT_DIRS[*]}" -- "${UI_CONTRACT_FILES[@]}" <<'PY'
 import json, os, sys
 
 core_dir = sys.argv[1]
-ui_contract_files = sys.argv[2:]
+separator = sys.argv.index('--')
+contract_dirs = sys.argv[2].split()
+ui_contract_files = sys.argv[separator + 1:]
 with open('.build/ouro-app-shell-coverage.json') as fh:
     data = json.load(fh)
 
@@ -62,6 +68,14 @@ def matching_file(path):
     return matches[0]
 
 ui_files = [matching_file(path) for path in ui_contract_files]
+contract_files = [
+    f
+    for f in coverage_files
+    if any(f'/{contract_dir}/' in f['filename'] for contract_dir in contract_dirs)
+]
+if not contract_files:
+    print(f'error: no contract files in coverage data: {contract_dirs}', file=sys.stderr)
+    sys.exit(1)
 
 below = []
 def collect_below(files, group):
@@ -75,6 +89,7 @@ def collect_below(files, group):
             below.append((group, uncovered_lines, name, lines['percent'], regions['percent'], uncovered_regions, f['filename']))
 
 collect_below(core_files, 'Core')
+collect_below(contract_files, 'Contract')
 collect_below(ui_files, 'UI contract')
 
 def print_group(label, files):
@@ -85,6 +100,7 @@ def print_group(label, files):
     print(f'\n{label}: {len(files) - len(failing)}/{len(files)} files at 100% line+region')
 
 print_group('OuroAppShellCore', core_files)
+print_group('OuroAppShellContract + ConsumerTesting', contract_files)
 print_group('OuroAppShellUI contracts', ui_files)
 print('OuroAppShellUI rendered views: guarded by scripts/ui-surface-probe.sh')
 
@@ -112,10 +128,10 @@ if [ -s .build/ouro-app-shell-below.txt ]; then
       | grep -B1 -E '^\s+\^0([^0-9]|$)' | grep -vE '^\s+\^0|^--' | sed 's/^/    /' | head -40 || true
   done < .build/ouro-app-shell-below.txt
   echo ""
-  echo "FAIL: OuroAppShellCore and OuroAppShellUI contracts must be 100% line + region covered."
+  echo "FAIL: OuroAppShellCore, contract kit, and OuroAppShellUI contracts must be 100% line + region covered."
   exit 1
 fi
 
 echo ""
-echo "PASS: OuroAppShellCore and OuroAppShellUI contracts are 100% line + region covered."
+echo "PASS: OuroAppShellCore, contract kit, and OuroAppShellUI contracts are 100% line + region covered."
 echo "PASS: SwiftUI rendered views remain guarded by scripts/ui-surface-probe.sh."

@@ -22,12 +22,19 @@ final class ReleaseUpdatePolicyTests: XCTestCase {
         XCTAssertTrue(policy.assetNamingPolicy.isInstallableAssetName("Ouro-MD-0.10.0.zip", version: "0.10.0", build: nil))
     }
 
-    func testWorkbenchPolicyPairsPrereleasesWithBuildAwareAssetNaming() {
-        let policy = ReleaseUpdatePolicy.workbench()
+    func testBuildMatchedPrereleasePolicyPairsPrereleasesWithBuildAwareAssetNaming() {
+        let policy = ReleaseUpdatePolicy.buildMatchedPrerelease(namePrefix: "OuroWorkbench-")
 
         XCTAssertTrue(policy.includePrereleases)
         XCTAssertTrue(policy.assetNamingPolicy.isInstallableAssetName("OuroWorkbench-0.1.122-build.199-779ed85.zip", version: "0.1.122", build: "199"))
         XCTAssertFalse(policy.assetNamingPolicy.isInstallableAssetName("OuroWorkbench-0.1.122-build.198-779ed85.zip", version: "0.1.122", build: "199"))
+    }
+
+    func testLegacyWorkbenchPolicyUsesBuildMatchedPrereleases() {
+        XCTAssertEqual(
+            ReleaseUpdatePolicy.workbench(),
+            .buildMatchedPrerelease(namePrefix: "OuroWorkbench-")
+        )
     }
 
     func testCustomPolicyKeepsBothKnobsExplicit() {
