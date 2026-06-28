@@ -14,15 +14,26 @@ Ouro MD, Ouro Workbench, and future native Ouro apps.
 | Settings chrome | Adapter | Shared settings sections should move shellward; domain settings stay app-owned. |
 | Utility windows and reusable AppKit presentation | Shell | Apps provide content; shell owns the window presenter. |
 | Telemetry consent and common event envelope | Adapter | Consent/common shape should be shared; event meaning is app-owned. |
-| Document editing, rendering, files | App | Ouro MD domain logic. |
-| Agent/session orchestration | App | Workbench domain logic. |
+| Primary content and editing | App | Product-specific behavior stays in the consuming app. |
+| Domain workflows | App | Product-specific workflows stay in the consuming app. |
+
+## Consumer Contract Kit
+
+`OuroAppShellContract` is the shared declaration surface for native app-shell
+adoption. Consuming apps declare identity, required shell-first surfaces, and
+the app-provided descriptors for release updates, About, command reference,
+utility windows, and settings.
+
+`OuroAppShellConsumerTesting` is the XCTest helper product. Consumers should add
+a small contract test beside their shell adapter so CI fails when an app adds a
+shared shell surface locally without declaring or validating it.
 
 ## Adapter Rule
 
 Each consuming app should have exactly one obvious shell adapter module. New
 native-app behavior goes through this decision flow:
 
-1. Is it document/editor or Workbench domain behavior? Keep it in the app.
+1. Is it primary product content or domain workflow behavior? Keep it in the app.
 2. Is it app identity, About, updates, shortcuts, settings chrome, utility
    windows, or lifecycle chrome? Start in this shell repo.
 3. Does it need app-specific values or actions? Put only that glue in the
@@ -35,3 +46,10 @@ native-app behavior goes through this decision flow:
 The shell owns a boundary scanner. Consumers should run a local wrapper around
 `scripts/check-shell-boundary.sh` so new app-local shell behavior trips CI with a
 direct instruction instead of relying on reviewer memory.
+
+Downstream pins move in two phases. Shell changes first stay compatible with the
+existing pinned app commits. Contract files in consumers should contain typed
+`OuroAppShellContract` declarations, not shell-owned UI implementations. After
+each consumer adopts the contract helper on main, this repo refreshes
+`scripts/downstream-consumers.contract.tsv` to those consumer commits so shell CI
+proves the declared contract path, not only build compatibility.

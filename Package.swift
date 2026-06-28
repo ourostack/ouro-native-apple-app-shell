@@ -9,12 +9,22 @@ let package = Package(
     ],
     products: [
         .library(name: "OuroAppShellCore", targets: ["OuroAppShellCore"]),
+        .library(name: "OuroAppShellContract", targets: ["OuroAppShellContract"]),
+        .library(name: "OuroAppShellConsumerTesting", targets: ["OuroAppShellConsumerTesting"]),
         .library(name: "OuroAppShellAppKit", targets: ["OuroAppShellAppKit"]),
         .library(name: "OuroAppShellUI", targets: ["OuroAppShellUI"]),
         .executable(name: "OuroAppShellUISurfaceProbe", targets: ["OuroAppShellUISurfaceProbe"])
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
+        .target(
+            name: "OuroAppShellContract",
+            dependencies: ["OuroAppShellCore"]
+        ),
+        .target(
+            name: "OuroAppShellConsumerTesting",
+            dependencies: ["OuroAppShellContract"]
+        ),
         .target(
             name: "OuroAppShellAppKit",
             dependencies: ["OuroAppShellUI"]
@@ -30,6 +40,14 @@ let package = Package(
         .testTarget(
             name: "OuroAppShellCoreTests",
             dependencies: ["OuroAppShellCore", "OuroAppShellAppKit"]
+        ),
+        .testTarget(
+            name: "OuroAppShellContractTests",
+            dependencies: ["OuroAppShellContract"]
+        ),
+        .testTarget(
+            name: "OuroAppShellConsumerTestingTests",
+            dependencies: ["OuroAppShellConsumerTesting"]
         ),
         .testTarget(
             name: "OuroAppShellUITests",

@@ -9,6 +9,11 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 
 - `OuroAppShellCore`: pure, testable app identity, release/update, and
   distribution-channel logic shared by native Ouro apps.
+- `OuroAppShellContract`: typed consumer declarations for app identity,
+  shell-first surfaces, release updates, About, command discovery, settings, and
+  reusable utility windows.
+- `OuroAppShellConsumerTesting`: XCTest helpers that let consumer apps enforce
+  their shell contract beside their shell adapter.
 - `OuroAppShellAppKit`: small macOS runtime helpers for reusable utility-window
   presentation.
 - `OuroAppShellUI`: SwiftUI About, What's New, release update, and update

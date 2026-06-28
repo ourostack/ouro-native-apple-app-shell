@@ -48,13 +48,30 @@ EOF
 import AppKit
 func allowed() { _ = NSWindow(contentRect: .zero, styleMask: [.titled], backing: .buffered, defer: false) }
 EOF
+      cat >"$tmp/Sources/App/OuroMDShellContract.swift" <<'EOF'
+import OuroAppShellContract
+func contract() -> OuroAppShellContract? { nil }
+EOF
+      cat >"$tmp/Sources/App/LeakyShellContract.swift" <<'EOF'
+import SwiftUI
+func badContract() -> some View { AppShellCommandReferenceView(catalog: AppShellCommandReferenceCatalog(title: "Commands", sections: [])) }
+EOF
+      cat >"$tmp/Sources/App/OuroMDAppShellContract.swift" <<'EOF'
+import SwiftUI
+func alsoBadContract() -> some View { AppShellCommandReferenceView(catalog: AppShellCommandReferenceCatalog(title: "Commands", sections: [])) }
+EOF
       if "$ROOT/scripts/check-shell-boundary.sh" --repo "$tmp" >/tmp/ouro-shell-boundary-selftest.out 2>/tmp/ouro-shell-boundary-selftest.err; then
         cat /tmp/ouro-shell-boundary-selftest.out >&2
         fail "selftest expected app-local NSWindow violation"
       fi
       grep -Fq "Sources/App/AppDelegate.swift" /tmp/ouro-shell-boundary-selftest.err || fail "selftest did not report app-local violation"
+      grep -Fq "OuroMDShellContract.swift" /tmp/ouro-shell-boundary-selftest.err && fail "selftest should allow shell contract files"
+      grep -Fq "Sources/App/LeakyShellContract.swift" /tmp/ouro-shell-boundary-selftest.err || fail "selftest should still report shell UI inside contract files"
+      grep -Fq "Sources/App/OuroMDAppShellContract.swift" /tmp/ouro-shell-boundary-selftest.err || fail "selftest should report shell UI inside AppShellContract files"
       cat >"$tmp/scripts/shell-boundary-allowlist.txt" <<'EOF'
 Sources/App/AppDelegate.swift	NSWindow(contentRect	legacy fixture
+Sources/App/LeakyShellContract.swift	AppShellCommandReferenceView(	leaky fixture
+Sources/App/OuroMDAppShellContract.swift	AppShellCommandReferenceView(	leaky AppShellContract fixture
 EOF
       "$ROOT/scripts/check-shell-boundary.sh" --repo "$tmp" --allowlist "$tmp/scripts/shell-boundary-allowlist.txt" >/dev/null
       printf 'Shell boundary scanner selftest ok\n'
@@ -100,7 +117,7 @@ rules=(
 
 is_adapter_path() {
   case "$1" in
-    *ShellAdapter*|*AppInfoView.swift|*AppShell*|*ShellPresentation*) return 0 ;;
+    *ShellAdapter*|*AppInfoView.swift|*ShellPresentation*) return 0 ;;
     *) return 1 ;;
   esac
 }

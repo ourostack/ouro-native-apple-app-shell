@@ -18,8 +18,8 @@ final class ReleaseAssetNamingPolicyTests: XCTestCase {
         XCTAssertFalse(policy.isInstallableAssetName("Other-0.10.0.zip", version: "0.10.0", build: nil))
     }
 
-    func testWorkbenchPolicyMatchesVersionAndBuildAwareAssets() {
-        let policy = ReleaseAssetNamingPolicy.workbench()
+    func testBuildMatchedPolicyMatchesVersionAndBuildAwareAssets() {
+        let policy = ReleaseAssetNamingPolicy.buildMatchedArchiveAndManifest(namePrefix: "OuroWorkbench-")
 
         XCTAssertTrue(policy.isInstallableAssetName("OuroWorkbench-0.1.122-build.199-779ed85.zip", version: "0.1.122", build: "199"))
         XCTAssertTrue(policy.isInstallableAssetName("OuroWorkbench-0.1.122-build.199-779ed85.manifest.json", version: "0.1.122", build: "199"))
@@ -30,7 +30,7 @@ final class ReleaseAssetNamingPolicyTests: XCTestCase {
     }
 
     func testLatestBuildExtractsHighestNumericBuildFromMatchingAssetsOnly() {
-        let policy = ReleaseAssetNamingPolicy.workbench()
+        let policy = ReleaseAssetNamingPolicy.buildMatchedArchiveAndManifest(namePrefix: "OuroWorkbench-")
         let huge = String(repeating: "9", count: 80)
 
         let build = policy.latestBuild(
@@ -47,5 +47,12 @@ final class ReleaseAssetNamingPolicyTests: XCTestCase {
         )
 
         XCTAssertEqual(build, "340")
+    }
+
+    func testLegacyWorkbenchPolicyUsesBuildMatchedNaming() {
+        XCTAssertEqual(
+            ReleaseAssetNamingPolicy.workbench(),
+            .buildMatchedArchiveAndManifest(namePrefix: "OuroWorkbench-")
+        )
     }
 }

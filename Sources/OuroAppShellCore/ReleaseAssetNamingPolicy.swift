@@ -44,11 +44,25 @@ public struct ReleaseAssetNamingPolicy: Codable, Equatable, Sendable {
         )
     }
 
-    public static func workbench(namePrefix: String = "OuroWorkbench-") -> ReleaseAssetNamingPolicy {
+    public static func buildMatchedArchiveAndManifest(
+        namePrefix: String,
+        buildMarker: String = "-build.",
+        archiveSuffix: String = ".zip",
+        manifestSuffix: String = ".manifest.json"
+    ) -> ReleaseAssetNamingPolicy {
         versionedArchiveAndManifest(
             namePrefix: namePrefix,
-            buildMarker: "-build.",
-            requiresMatchingBuild: true
+            buildMarker: buildMarker,
+            requiresMatchingBuild: true,
+            archiveSuffix: archiveSuffix,
+            manifestSuffix: manifestSuffix
+        )
+    }
+
+    public static func workbench(namePrefix: String = "OuroWorkbench-") -> ReleaseAssetNamingPolicy {
+        buildMatchedArchiveAndManifest(
+            namePrefix: namePrefix,
+            buildMarker: "-build."
         )
     }
 

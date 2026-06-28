@@ -4,7 +4,7 @@ public enum AppShellBoundaryOwner: String, Codable, Equatable, Sendable {
     case adapter
 }
 
-public enum AppShellSurface: String, Codable, CaseIterable, Equatable, Sendable {
+public enum AppShellSurface: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case appIdentity
     case releaseUpdates
     case about
@@ -12,7 +12,7 @@ public enum AppShellSurface: String, Codable, CaseIterable, Equatable, Sendable 
     case settings
     case windowChrome
     case telemetry
-    case documentEditing
+    case primaryContent
     case domainWorkflow
 }
 
@@ -45,10 +45,10 @@ public enum AppShellBoundary {
             return .init(surface: surface, owner: .shell, reason: "Reusable utility-window presentation belongs in the shell; content remains app-owned.")
         case .telemetry:
             return .init(surface: surface, owner: .adapter, reason: "Telemetry consent and common event shape should be shared, while event meaning is app-specific.")
-        case .documentEditing:
-            return .init(surface: surface, owner: .app, reason: "Document/editor behavior is Ouro MD domain logic.")
+        case .primaryContent:
+            return .init(surface: surface, owner: .app, reason: "Primary app content and editing behavior belongs to the consuming app.")
         case .domainWorkflow:
-            return .init(surface: surface, owner: .app, reason: "Agent/session/workflow behavior is Workbench domain logic.")
+            return .init(surface: surface, owner: .app, reason: "Domain-specific workflows belong to the consuming app.")
         }
     }
 
