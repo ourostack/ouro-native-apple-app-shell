@@ -27,6 +27,7 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 - `scripts/check-coverage.sh`
 - `scripts/ui-surface-probe.sh`
 - `scripts/shell-doctor.sh --selftest`
+- `scripts/scaffold-consumer-adoption.sh --selftest`
 - `scripts/check-downstream-consumers.sh`
 
 The UI probe is a package-owned executable that renders representative About,
@@ -40,12 +41,23 @@ The downstream consumer check clones Ouro MD and Ouro Workbench into
 SwiftPM dependency to this checkout, then runs each app's build/test/UI smoke.
 That catches shell changes that compile locally but break the next consumer
 resolution.
+Each downstream command writes a log under `.downstream-consumers/_logs` and is
+guarded by `OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS` (default: 1200 seconds), so a
+consumer hang fails loudly with the command log instead of wedging CI.
 
 The shell doctor is the executable adoption checklist for downstream apps. Run
 `scripts/shell-doctor.sh --repo /path/to/consumer` to verify that a consumer has
 the SwiftPM products, typed shell contract, consumer contract tests, dependency
 freshness guard, boundary wrapper, and preflight wiring expected by shared shell
 CI.
+
+The consumer scaffold is the executable reference shape for a new native app.
+Run `scripts/scaffold-consumer-adoption.sh --output /tmp/ouro-shell-fixture
+--package-name ExampleConsumer --module-name ExampleApp --app-name "Example"
+--bundle-id com.ouro.example --repository ourostack/example --force` to generate
+a minimal package that passes the shell doctor and shows exactly where the
+consumer contract, tests, shell-boundary wrapper, dependency guard, and preflight
+ordering belong.
 
 See [docs/shell-boundary.md](docs/shell-boundary.md) for the ownership contract
 used by consumers and CI.

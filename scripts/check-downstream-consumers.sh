@@ -8,10 +8,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK_ROOT="${OURO_DOWNSTREAM_WORK_ROOT:-"$ROOT/.downstream-consumers"}"
 CONTRACT_FILE="${OURO_DOWNSTREAM_CONSUMER_CONTRACT:-"$ROOT/scripts/downstream-consumers.contract.tsv"}"
 REF_MODE="${OURO_DOWNSTREAM_CONSUMER_REF_MODE:-pinned}"
+STEP_TIMEOUT_SECONDS="${OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS:-1200}"
+RUN_LOG_DIR="${OURO_DOWNSTREAM_LOG_DIR:-"$WORK_ROOT/_logs"}"
+RUN_ENV_ROOT="${OURO_DOWNSTREAM_ENV_ROOT:-"$WORK_ROOT/_env"}"
 SHELL_PACKAGE="ouro-native-apple-app-shell"
 SHELL_PACKAGE_URL="https://github.com/ourostack/ouro-native-apple-app-shell.git"
 STRICT_FLAGS=(-Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete)
 CONTRACT_ENTRIES=()
+RUN_INDEX=0
+CURRENT_CONSUMER="setup"
 
 usage() {
   cat >&2 <<'USAGE'
@@ -23,6 +28,8 @@ By default, checks all downstream consumers in disposable clones under:
 Override with OURO_DOWNSTREAM_WORK_ROOT=/tmp/some-dir when desired.
 By default, consumer refs come from scripts/downstream-consumers.contract.tsv.
 Use --ref-mode live, or OURO_DOWNSTREAM_CONSUMER_REF_MODE=live, for live-main canaries.
+Set OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS=0 to disable the per-command timeout.
+Consumer Swift gates run with isolated HOME/CFFIXED_USER_HOME roots under the work root.
 USAGE
 }
 
@@ -123,11 +130,89 @@ else
   done
 fi
 
-mkdir -p "$WORK_ROOT"
+mkdir -p "$WORK_ROOT" "$RUN_LOG_DIR" "$RUN_ENV_ROOT"
 
 run() {
-  printf '\n==> %s\n' "$*" >&2
-  "$@"
+  RUN_INDEX=$((RUN_INDEX + 1))
+  local slug log
+  slug="$(printf '%s' "$CURRENT_CONSUMER-$RUN_INDEX-$*" | tr -cs '[:alnum:]_.=-' '-' | cut -c 1-120)"
+  log="$RUN_LOG_DIR/$slug.log"
+
+  printf '\n==> %s\n    log: %s\n' "$*" "$log" >&2
+  python3 - "$STEP_TIMEOUT_SECONDS" "$log" "$@" <<'PY'
+import os
+import selectors
+import signal
+import subprocess
+import sys
+import time
+
+timeout = int(sys.argv[1])
+log_path = sys.argv[2]
+cmd = sys.argv[3:]
+deadline = time.monotonic() + timeout if timeout > 0 else None
+
+with open(log_path, "wb") as log:
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    assert process.stdout is not None
+    selector = selectors.DefaultSelector()
+    selector.register(process.stdout, selectors.EVENT_READ)
+
+    def emit(chunk: bytes) -> None:
+        if not chunk:
+            return
+        log.write(chunk)
+        log.flush()
+        sys.stdout.buffer.write(chunk)
+        sys.stdout.buffer.flush()
+
+    while True:
+        for key, _ in selector.select(timeout=0.2):
+            emit(os.read(key.fileobj.fileno(), 65536))
+
+        status = process.poll()
+        if status is not None:
+            emit(process.stdout.read())
+            sys.exit(status)
+
+        if deadline is not None and time.monotonic() >= deadline:
+            message = (
+                f"\nerror: command timed out after {timeout}s: "
+                + " ".join(cmd)
+                + "\n"
+            ).encode()
+            emit(message)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.wait()
+            sys.exit(124)
+PY
+}
+
+run_consumer() {
+  local home tmp
+  home="$RUN_ENV_ROOT/$CURRENT_CONSUMER-home"
+  tmp="$RUN_ENV_ROOT/$CURRENT_CONSUMER-tmp"
+  mkdir -p "$home/Library/Preferences" "$home/Library/Application Support" "$tmp"
+  run env \
+    HOME="$home" \
+    CFFIXED_USER_HOME="$home" \
+    TMPDIR="$tmp/" \
+    "$@"
 }
 
 prepare_consumer() {
@@ -199,7 +284,9 @@ override_shell_package() {
 
   local root_real
   root_real="$(cd "$ROOT" && pwd -P)"
-  swift package --package-path "$dir" show-dependencies | grep -Fq "$root_real" || fail "$dir did not resolve $SHELL_PACKAGE to $root_real"
+  if ! run bash -c 'swift package --package-path "$1" show-dependencies | grep -Fq "$2"' _ "$dir" "$root_real"; then
+    fail "$dir did not resolve $SHELL_PACKAGE to $root_real"
+  fi
 }
 
 check_shell_adoption() {
@@ -211,23 +298,25 @@ check_shell_adoption() {
 
 check_ouro_md() {
   local dir="$WORK_ROOT/ouro-md"
+  CURRENT_CONSUMER="ouro-md"
   prepare_consumer ouro-md
   override_shell_package "$dir"
   check_shell_adoption ouro-md "$dir"
 
-  run swift build --package-path "$dir"
-  run swift test --package-path "$dir"
-  run "$dir/.build/debug/ouro-md" --uisurfacetest
+  run_consumer swift build --package-path "$dir"
+  run_consumer swift test --package-path "$dir"
+  run_consumer "$dir/.build/debug/ouro-md" --uisurfacetest
 }
 
 check_ouro_workbench() {
   local dir="$WORK_ROOT/ouro-workbench"
+  CURRENT_CONSUMER="ouro-workbench"
   prepare_consumer ouro-workbench
   override_shell_package "$dir"
   check_shell_adoption ouro-workbench "$dir"
 
-  run swift test --package-path "$dir" "${STRICT_FLAGS[@]}"
-  run swift run --package-path "$dir" "${STRICT_FLAGS[@]}" OuroWorkbench --uisurfacetest
+  run_consumer swift test --package-path "$dir" "${STRICT_FLAGS[@]}"
+  run_consumer swift run --package-path "$dir" "${STRICT_FLAGS[@]}" OuroWorkbench --uisurfacetest
 }
 
 for consumer in "${consumers[@]}"; do

@@ -538,7 +538,7 @@ run_boundary_wrapper_selftest() {
   local repo="$1"
   local output
 
-  if ! output="$(cd "$repo" && scripts/check-shell-boundary.sh --selftest 2>&1)"; then
+  if ! output="$(cd "$repo" && OURO_APP_SHELL_ROOT="$ROOT" scripts/check-shell-boundary.sh --selftest 2>&1)"; then
     printf '%s\n' "$output" >&2
     return 1
   fi
@@ -554,7 +554,7 @@ run_boundary_wrapper_scan() {
   local repo="$1"
   local output
 
-  if ! output="$(cd "$repo" && scripts/check-shell-boundary.sh 2>&1)"; then
+  if ! output="$(cd "$repo" && OURO_APP_SHELL_ROOT="$ROOT" scripts/check-shell-boundary.sh 2>&1)"; then
     printf '%s\n' "$output" >&2
     return 1
   fi
