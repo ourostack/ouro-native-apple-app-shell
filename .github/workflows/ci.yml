@@ -54,6 +54,15 @@ jobs:
       - name: Enforce 100% line+region coverage
         run: scripts/check-coverage.sh
 
+  downstream-contract:
+    name: Downstream contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Require current downstream pins
+        run: scripts/check-downstream-consumers.sh --check-pins-current
+
   downstream-consumers:
     name: Downstream / ${{ matrix.consumer }}
     runs-on: macos-14

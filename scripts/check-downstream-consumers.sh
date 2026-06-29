@@ -20,7 +20,7 @@ CURRENT_CONSUMER="setup"
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live]
+Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live] [--check-pins-current]
 
 By default, checks all downstream consumers in disposable clones under:
   .downstream-consumers
@@ -28,6 +28,7 @@ By default, checks all downstream consumers in disposable clones under:
 Override with OURO_DOWNSTREAM_WORK_ROOT=/tmp/some-dir when desired.
 By default, consumer refs come from scripts/downstream-consumers.contract.tsv.
 Use --ref-mode live, or OURO_DOWNSTREAM_CONSUMER_REF_MODE=live, for live-main canaries.
+Use --check-pins-current to fail fast when pinned_ref differs from live_ref.
 Set OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS=0 to disable the per-command timeout.
 Consumer Swift gates run with isolated HOME/CFFIXED_USER_HOME roots under the work root.
 USAGE
@@ -93,7 +94,50 @@ validate_ref_mode() {
   esac
 }
 
+resolve_live_ref() {
+  local repo="$1"
+  local live_ref="$2"
+  local remote_ref="$live_ref"
+  local resolved
+
+  if [[ "$live_ref" =~ ^[0-9a-fA-F]{40}$ ]]; then
+    printf '%s\n' "$live_ref"
+    return 0
+  fi
+
+  case "$remote_ref" in
+    refs/*) ;;
+    *) remote_ref="refs/heads/$remote_ref" ;;
+  esac
+
+  resolved="$(git ls-remote "$repo" "$remote_ref" | awk 'NR == 1 {print $1}')"
+  [ -n "$resolved" ] || fail "could not resolve $repo $remote_ref"
+  printf '%s\n' "$resolved"
+}
+
+check_pins_current() {
+  local consumer entry name repo pinned_ref live_ref live_resolved
+  local failures=0
+
+  for consumer in "${consumers[@]}"; do
+    entry="$(contract_entry_for "$consumer")" || fail "unknown consumer: $consumer"
+    IFS=$'\t' read -r name repo pinned_ref live_ref <<EOF
+$entry
+EOF
+    live_resolved="$(resolve_live_ref "$repo" "$live_ref")"
+    if [ "$pinned_ref" != "$live_resolved" ]; then
+      printf 'stale pin: %s\n  pinned_ref: %s\n  %s: %s\n' "$name" "$pinned_ref" "$live_ref" "$live_resolved" >&2
+      failures=$((failures + 1))
+    else
+      printf 'current pin: %s %s\n' "$name" "$pinned_ref" >&2
+    fi
+  done
+
+  [ "$failures" -eq 0 ] || fail "$failures downstream consumer pin(s) are stale"
+}
+
 consumers=()
+CHECK_PINS_CURRENT=false
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --consumer)
@@ -105,6 +149,10 @@ while [ "$#" -gt 0 ]; do
       [ "$#" -ge 2 ] || fail "--ref-mode requires a value"
       REF_MODE="$2"
       shift 2
+      ;;
+    --check-pins-current)
+      CHECK_PINS_CURRENT=true
+      shift
       ;;
     -h|--help)
       usage
@@ -128,6 +176,11 @@ else
   for consumer in "${consumers[@]}"; do
     contract_entry_for "$consumer" >/dev/null || fail "unknown consumer: $consumer"
   done
+fi
+
+if [ "$CHECK_PINS_CURRENT" = true ]; then
+  check_pins_current
+  exit 0
 fi
 
 mkdir -p "$WORK_ROOT" "$RUN_LOG_DIR" "$RUN_ENV_ROOT"
