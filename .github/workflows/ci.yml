@@ -27,6 +27,8 @@ jobs:
         run: swift package resolve
       - name: Run shell boundary scanner selftest
         run: scripts/check-shell-boundary.sh --selftest
+      - name: Run shell doctor selftest
+        run: scripts/shell-doctor.sh --selftest
       - name: Run strict tests
         run: swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
       - name: Run UI surface probe
