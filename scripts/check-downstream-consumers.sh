@@ -20,7 +20,7 @@ CURRENT_CONSUMER="setup"
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live] [--check-pins-current]
+Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live] [--check-pins-current|--warn-pins-current]
 
 By default, checks all downstream consumers in disposable clones under:
   .downstream-consumers
@@ -29,6 +29,7 @@ Override with OURO_DOWNSTREAM_WORK_ROOT=/tmp/some-dir when desired.
 By default, consumer refs come from scripts/downstream-consumers.contract.tsv.
 Use --ref-mode live, or OURO_DOWNSTREAM_CONSUMER_REF_MODE=live, for live-main canaries.
 Use --check-pins-current to fail fast when pinned_ref differs from live_ref.
+Use --warn-pins-current to warn on stale pins while still failing contract/resolve errors.
 Set OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS=0 to disable the per-command timeout.
 Consumer Swift gates run with isolated HOME/CFFIXED_USER_HOME roots under the work root.
 USAGE
@@ -133,11 +134,21 @@ EOF
     fi
   done
 
-  [ "$failures" -eq 0 ] || fail "$failures downstream consumer pin(s) are stale"
+  if [ "$failures" -eq 0 ]; then
+    return 0
+  fi
+
+  if [ "$WARN_PINS_CURRENT" = true ]; then
+    printf '::warning title=Downstream pins moved::Refresh scripts/downstream-consumers.contract.tsv when adopting a new consumer baseline. Pinned downstream smokes remain the blocking compatibility gate; live-main canaries cover latest consumer refs.\n' >&2
+    return 0
+  fi
+
+  fail "$failures downstream consumer pin(s) are stale"
 }
 
 consumers=()
 CHECK_PINS_CURRENT=false
+WARN_PINS_CURRENT=false
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --consumer)
@@ -152,6 +163,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --check-pins-current)
       CHECK_PINS_CURRENT=true
+      shift
+      ;;
+    --warn-pins-current)
+      WARN_PINS_CURRENT=true
       shift
       ;;
     -h|--help)
@@ -178,7 +193,11 @@ else
   done
 fi
 
-if [ "$CHECK_PINS_CURRENT" = true ]; then
+if [ "$CHECK_PINS_CURRENT" = true ] && [ "$WARN_PINS_CURRENT" = true ]; then
+  fail "--check-pins-current and --warn-pins-current are mutually exclusive"
+fi
+
+if [ "$CHECK_PINS_CURRENT" = true ] || [ "$WARN_PINS_CURRENT" = true ]; then
   check_pins_current
   exit 0
 fi

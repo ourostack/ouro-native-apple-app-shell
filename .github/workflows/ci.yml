@@ -61,10 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Report downstream pin freshness
-        run: |
-          if ! scripts/check-downstream-consumers.sh --check-pins-current; then
-            echo "::warning title=Downstream pins moved::Refresh scripts/downstream-consumers.contract.tsv when adopting a new consumer baseline. Pinned downstream smokes remain the blocking compatibility gate; live-main canaries cover latest consumer refs."
-          fi
+        run: scripts/check-downstream-consumers.sh --warn-pins-current
 
   downstream-consumers:
     name: Downstream / ${{ matrix.consumer }}
