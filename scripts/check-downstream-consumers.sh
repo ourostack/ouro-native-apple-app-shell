@@ -193,15 +193,27 @@ override_shell_package() {
 
   run swift package --package-path "$dir" resolve
 
+  mkdir -p "$dir/.build/checkouts"
+  rm -rf "$dir/.build/checkouts/$SHELL_PACKAGE"
+  ln -s "$ROOT" "$dir/.build/checkouts/$SHELL_PACKAGE"
+
   local root_real
   root_real="$(cd "$ROOT" && pwd -P)"
   swift package --package-path "$dir" show-dependencies | grep -Fq "$root_real" || fail "$dir did not resolve $SHELL_PACKAGE to $root_real"
+}
+
+check_shell_adoption() {
+  local name="$1"
+  local dir="$2"
+
+  run "$ROOT/scripts/shell-doctor.sh" --repo "$dir" --consumer "$name"
 }
 
 check_ouro_md() {
   local dir="$WORK_ROOT/ouro-md"
   prepare_consumer ouro-md
   override_shell_package "$dir"
+  check_shell_adoption ouro-md "$dir"
 
   run swift build --package-path "$dir"
   run swift test --package-path "$dir"
@@ -212,6 +224,7 @@ check_ouro_workbench() {
   local dir="$WORK_ROOT/ouro-workbench"
   prepare_consumer ouro-workbench
   override_shell_package "$dir"
+  check_shell_adoption ouro-workbench "$dir"
 
   run swift test --package-path "$dir" "${STRICT_FLAGS[@]}"
   run swift run --package-path "$dir" "${STRICT_FLAGS[@]}" OuroWorkbench --uisurfacetest

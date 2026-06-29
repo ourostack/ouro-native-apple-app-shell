@@ -28,6 +28,20 @@ utility windows, and settings.
 a small contract test beside their shell adapter so CI fails when an app adds a
 shared shell surface locally without declaring or validating it.
 
+`scripts/shell-doctor.sh` is the executable adoption checklist. It checks a
+consumer checkout for the shell dependency/products, typed contract declaration,
+contract assertion tests, dependency freshness script, boundary wrapper,
+preflight wiring, and the boundary scan itself. Run it from this repo with:
+
+```bash
+scripts/shell-doctor.sh --repo /path/to/ouro-md
+scripts/shell-doctor.sh --repo /path/to/ouro-workbench
+```
+
+Shell CI also runs the doctor inside `scripts/check-downstream-consumers.sh`
+after overriding each consumer to the local shell checkout, so a shell PR cannot
+silently drift away from the current consumer adoption shape.
+
 ## Adapter Rule
 
 Each consuming app should have exactly one obvious shell adapter module. New
