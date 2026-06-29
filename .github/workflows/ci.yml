@@ -29,6 +29,8 @@ jobs:
         run: scripts/check-shell-boundary.sh --selftest
       - name: Run shell doctor selftest
         run: scripts/shell-doctor.sh --selftest
+      - name: Run consumer scaffold selftest
+        run: scripts/scaffold-consumer-adoption.sh --selftest
       - name: Run strict tests
         run: swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
       - name: Run UI surface probe
