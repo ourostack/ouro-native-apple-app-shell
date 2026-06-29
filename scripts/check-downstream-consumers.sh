@@ -10,6 +10,7 @@ CONTRACT_FILE="${OURO_DOWNSTREAM_CONSUMER_CONTRACT:-"$ROOT/scripts/downstream-co
 REF_MODE="${OURO_DOWNSTREAM_CONSUMER_REF_MODE:-pinned}"
 STEP_TIMEOUT_SECONDS="${OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS:-1200}"
 RUN_LOG_DIR="${OURO_DOWNSTREAM_LOG_DIR:-"$WORK_ROOT/_logs"}"
+RUN_ENV_ROOT="${OURO_DOWNSTREAM_ENV_ROOT:-"$WORK_ROOT/_env"}"
 SHELL_PACKAGE="ouro-native-apple-app-shell"
 SHELL_PACKAGE_URL="https://github.com/ourostack/ouro-native-apple-app-shell.git"
 STRICT_FLAGS=(-Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete)
@@ -28,6 +29,7 @@ Override with OURO_DOWNSTREAM_WORK_ROOT=/tmp/some-dir when desired.
 By default, consumer refs come from scripts/downstream-consumers.contract.tsv.
 Use --ref-mode live, or OURO_DOWNSTREAM_CONSUMER_REF_MODE=live, for live-main canaries.
 Set OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS=0 to disable the per-command timeout.
+Consumer Swift gates run with isolated HOME/CFFIXED_USER_HOME roots under the work root.
 USAGE
 }
 
@@ -128,7 +130,7 @@ else
   done
 fi
 
-mkdir -p "$WORK_ROOT" "$RUN_LOG_DIR"
+mkdir -p "$WORK_ROOT" "$RUN_LOG_DIR" "$RUN_ENV_ROOT"
 
 run() {
   RUN_INDEX=$((RUN_INDEX + 1))
@@ -201,6 +203,18 @@ with open(log_path, "wb") as log:
 PY
 }
 
+run_consumer() {
+  local home tmp
+  home="$RUN_ENV_ROOT/$CURRENT_CONSUMER-home"
+  tmp="$RUN_ENV_ROOT/$CURRENT_CONSUMER-tmp"
+  mkdir -p "$home/Library/Preferences" "$home/Library/Application Support" "$tmp"
+  run env \
+    HOME="$home" \
+    CFFIXED_USER_HOME="$home" \
+    TMPDIR="$tmp/" \
+    "$@"
+}
+
 prepare_consumer() {
   local name="$1"
   local entry url pinned_ref live_ref ref actual_ref
@@ -270,7 +284,9 @@ override_shell_package() {
 
   local root_real
   root_real="$(cd "$ROOT" && pwd -P)"
-  swift package --package-path "$dir" show-dependencies | grep -Fq "$root_real" || fail "$dir did not resolve $SHELL_PACKAGE to $root_real"
+  if ! run bash -c 'swift package --package-path "$1" show-dependencies | grep -Fq "$2"' _ "$dir" "$root_real"; then
+    fail "$dir did not resolve $SHELL_PACKAGE to $root_real"
+  fi
 }
 
 check_shell_adoption() {
@@ -287,9 +303,9 @@ check_ouro_md() {
   override_shell_package "$dir"
   check_shell_adoption ouro-md "$dir"
 
-  run swift build --package-path "$dir"
-  run swift test --package-path "$dir"
-  run "$dir/.build/debug/ouro-md" --uisurfacetest
+  run_consumer swift build --package-path "$dir"
+  run_consumer swift test --package-path "$dir"
+  run_consumer "$dir/.build/debug/ouro-md" --uisurfacetest
 }
 
 check_ouro_workbench() {
@@ -299,8 +315,8 @@ check_ouro_workbench() {
   override_shell_package "$dir"
   check_shell_adoption ouro-workbench "$dir"
 
-  run swift test --package-path "$dir" "${STRICT_FLAGS[@]}"
-  run swift run --package-path "$dir" "${STRICT_FLAGS[@]}" OuroWorkbench --uisurfacetest
+  run_consumer swift test --package-path "$dir" "${STRICT_FLAGS[@]}"
+  run_consumer swift run --package-path "$dir" "${STRICT_FLAGS[@]}" OuroWorkbench --uisurfacetest
 }
 
 for consumer in "${consumers[@]}"; do

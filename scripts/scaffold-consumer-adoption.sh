@@ -392,7 +392,15 @@ write(
     scripts/check-shell-boundary.sh --selftest
     scripts/check-shell-boundary.sh
 
-    swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
+    TEST_HOME="${OURO_APP_TEST_HOME:-"$ROOT_DIR/.build/ouro-app-test-home"}"
+    TEST_TMP="${OURO_APP_TEST_TMPDIR:-"$ROOT_DIR/.build/ouro-app-test-tmp"}"
+    mkdir -p "$TEST_HOME/Library/Preferences" "$TEST_HOME/Library/Application Support" "$TEST_TMP"
+
+    env \\
+      HOME="$TEST_HOME" \\
+      CFFIXED_USER_HOME="$TEST_HOME" \\
+      TMPDIR="$TEST_TMP/" \\
+      swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
     """,
     executable=True,
 )
@@ -412,6 +420,8 @@ write(
     - `scripts/check-shell-dependency.sh` guards the dependency shape.
     - `scripts/check-shell-boundary.sh` delegates to the shell-owned scanner.
     - `scripts/preflight.sh` runs shell dependency and boundary checks before other gates.
+    - Swift tests run with isolated `HOME`/`CFFIXED_USER_HOME` roots so local app preferences
+      cannot affect deterministic test surfaces.
 
     Validate with:
 
@@ -564,7 +574,11 @@ if [ "$DEPENDENCY_MODE" = "local" ]; then
 fi
 
 if [ -z "$SHELL_REVISION" ]; then
-  SHELL_REVISION="$(shell_main_revision "$SHELL_URL")"
+  if [ "$DEPENDENCY_MODE" = "remote" ]; then
+    SHELL_REVISION="$(shell_main_revision "$SHELL_URL")"
+  else
+    SHELL_REVISION="$(git -C "$ROOT" rev-parse HEAD)"
+  fi
 fi
 
 generator_args=(
