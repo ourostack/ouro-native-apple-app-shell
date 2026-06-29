@@ -74,3 +74,5 @@ existing pinned app commits. Contract files in consumers should contain typed
 each consumer adopts the contract helper on main, this repo refreshes
 `scripts/downstream-consumers.contract.tsv` to those consumer commits so shell CI
 proves the declared contract path, not only build compatibility.
+CI also runs `scripts/check-downstream-consumers.sh --check-pins-current` so
+those contract pins fail fast when a listed live ref moves.
