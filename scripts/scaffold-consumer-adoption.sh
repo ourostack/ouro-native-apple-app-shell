@@ -103,6 +103,7 @@ package_name = args.package_name
 archive_prefix = re.sub(r"[^A-Za-z0-9]+", "", args.app_name) or module
 repo_url = f"https://github.com/{args.repository}"
 shell_path = pathlib.Path(args.shell_path).expanduser().resolve()
+local_boundary_checker = str(shell_path / "scripts" / "check-shell-boundary.sh") if args.dependency_mode == "local" else ""
 
 if args.dependency_mode == "local":
     dependency_line = f'.package(name: "ouro-native-apple-app-shell", path: {swift_string(str(shell_path))})'
@@ -200,10 +201,10 @@ write(
                     entryPoint: "Help > Keyboard Shortcuts"
                 ),
                 utilityWindows: [
-                    OuroAppShellUtilityWindowContract(id: "about", surface: .about, title: "About {args.app_name}"),
+                    OuroAppShellUtilityWindowContract(id: "about", surface: .about, title: {swift_string("About " + args.app_name)}),
                     OuroAppShellUtilityWindowContract(id: "shortcuts", surface: .keyboardShortcuts, title: "Keyboard Shortcuts"),
                 ],
-                settings: OuroAppShellSettingsContract(entryPoint: "{args.app_name} > Settings")
+                settings: OuroAppShellSettingsContract(entryPoint: {swift_string(args.app_name + " > Settings")})
             )
         }}
     }}
@@ -242,14 +243,15 @@ write(
 
     checker=".build/checkouts/ouro-native-apple-app-shell/scripts/check-shell-boundary.sh"
     local_checker=__LOCAL_CHECKER__
-    if [[ ! -x "$checker" && -x "$local_checker" ]]; then
-      checker="$local_checker"
-    fi
-    if [[ ! -x "$checker" && -n "${OURO_APP_SHELL_ROOT:-}" ]]; then
+
+    if [[ -n "${OURO_APP_SHELL_ROOT:-}" ]]; then
       checker="$OURO_APP_SHELL_ROOT/scripts/check-shell-boundary.sh"
     fi
-    if [[ ! -x "$checker" ]]; then
+    if [[ ! -x "$checker" && -z "${OURO_APP_SHELL_ROOT:-}" ]]; then
       swift package resolve >/dev/null
+    fi
+    if [[ ! -x "$checker" && -n "$local_checker" && -x "$local_checker" ]]; then
+      checker="$local_checker"
     fi
 
     [[ -x "$checker" ]] || {
@@ -262,7 +264,7 @@ write(
     fi
 
     exec "$checker" --repo "$ROOT_DIR" --allowlist "$ROOT_DIR/scripts/shell-boundary-allowlist.txt"
-    """.replace("__LOCAL_CHECKER__", swift_string(str(shell_path / "scripts" / "check-shell-boundary.sh"))),
+    """.replace("__LOCAL_CHECKER__", swift_string(local_boundary_checker)),
     executable=True,
 )
 
@@ -436,10 +438,11 @@ PY
 }
 
 selftest() {
-  local tmp fixture overwrite_out overwrite_err
+  local tmp fixture remote_fixture overwrite_out overwrite_err
   tmp="$(mktemp -d)"
   trap "rm -rf '$tmp'" EXIT
   fixture="$tmp/fake-consumer"
+  remote_fixture="$tmp/remote-consumer"
   overwrite_out="$tmp/overwrite.out"
   overwrite_err="$tmp/overwrite.err"
 
@@ -447,7 +450,7 @@ selftest() {
     --output "$fixture" \
     --package-name FakeConsumer \
     --module-name FakeApp \
-    --app-name "Fake Consumer" \
+    --app-name 'Fake "Quoted" Consumer' \
     --bundle-id com.ouro.fake-consumer \
     --repository ourostack/fake-consumer \
     --dependency-mode local \
@@ -458,7 +461,7 @@ selftest() {
     --output "$fixture" \
     --package-name FakeConsumer \
     --module-name FakeApp \
-    --app-name "Fake Consumer" \
+    --app-name 'Fake "Quoted" Consumer' \
     --bundle-id com.ouro.fake-consumer \
     --repository ourostack/fake-consumer \
     --dependency-mode local \
@@ -469,6 +472,21 @@ selftest() {
 
   OURO_APP_SHELL_ROOT="$ROOT" "$ROOT/scripts/shell-doctor.sh" --repo "$fixture" --consumer fake-consumer
   "$fixture/scripts/preflight.sh"
+
+  "$0" \
+    --output "$remote_fixture" \
+    --package-name RemoteConsumer \
+    --module-name RemoteApp \
+    --app-name "Remote Consumer" \
+    --bundle-id com.ouro.remote-consumer \
+    --repository ourostack/remote-consumer \
+    --dependency-mode remote \
+    --force
+  grep -Fq 'local_checker=""' "$remote_fixture/scripts/check-shell-boundary.sh" || fail "remote fixture should not bake a local boundary checker"
+  if grep -Fq "$ROOT/scripts/check-shell-boundary.sh" "$remote_fixture/scripts/check-shell-boundary.sh"; then
+    fail "remote fixture unexpectedly references the local shell checkout"
+  fi
+  "$remote_fixture/scripts/check-shell-boundary.sh" --selftest
 
   printf 'Consumer adoption scaffold selftest ok\n'
 }
