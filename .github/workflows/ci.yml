@@ -60,8 +60,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: Require current downstream pins
-        run: scripts/check-downstream-consumers.sh --check-pins-current
+      - name: Report downstream pin freshness
+        run: |
+          if ! scripts/check-downstream-consumers.sh --check-pins-current; then
+            echo "::warning title=Downstream pins moved::Refresh scripts/downstream-consumers.contract.tsv when adopting a new consumer baseline. Pinned downstream smokes remain the blocking compatibility gate; live-main canaries cover latest consumer refs."
+          fi
 
   downstream-consumers:
     name: Downstream / ${{ matrix.consumer }}

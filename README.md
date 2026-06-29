@@ -41,9 +41,11 @@ The downstream consumer check clones Ouro MD and Ouro Workbench into
 SwiftPM dependency to this checkout, then runs each app's build/test/UI smoke.
 That catches shell changes that compile locally but break the next consumer
 resolution.
-CI also runs `scripts/check-downstream-consumers.sh --check-pins-current` so
-`scripts/downstream-consumers.contract.tsv` cannot silently age behind the live
-consumer refs.
+CI also reports `scripts/check-downstream-consumers.sh --check-pins-current` as
+an advisory freshness signal. Pin movement alone does not block shell PRs; the
+blocking compatibility gates are the pinned downstream smokes, and the scheduled
+or manually dispatched `Downstream Live Main` workflow covers latest consumer
+refs.
 Each downstream command writes a log under `.downstream-consumers/_logs` and is
 guarded by `OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS` (default: 1200 seconds), so a
 consumer hang fails loudly with the command log instead of wedging CI.
