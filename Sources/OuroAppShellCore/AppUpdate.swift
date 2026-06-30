@@ -44,6 +44,73 @@ public struct AppUpdatePlan: Equatable, Sendable {
     }
 }
 
+public enum ReleaseInstallCapability: String, Codable, CaseIterable, Equatable, Sendable {
+    case none
+    case reviewThenInstall
+    case directInstallAndRelaunch
+    case readyToRelaunch
+
+    public var canInstallFromShellControl: Bool {
+        switch self {
+        case .directInstallAndRelaunch, .readyToRelaunch:
+            return true
+        case .none, .reviewThenInstall:
+            return false
+        }
+    }
+
+    public var requiresAppReviewPrompt: Bool {
+        self == .reviewThenInstall
+    }
+
+    public var userFacingSummary: String {
+        switch self {
+        case .none:
+            return "Updates can be checked, but this surface cannot install them."
+        case .reviewThenInstall:
+            return "Review update details in the app before installing."
+        case .directInstallAndRelaunch:
+            return "Install and relaunch directly from shell update controls."
+        case .readyToRelaunch:
+            return "Relaunch directly from shell update controls after staging completes."
+        }
+    }
+}
+
+public struct AppStagedUpdate: Codable, Equatable, Sendable {
+    public var version: String
+    public var archiveURL: URL
+    public var appBundleURL: URL
+    public var backupBundleURL: URL?
+
+    public init(
+        version: String,
+        archiveURL: URL,
+        appBundleURL: URL,
+        backupBundleURL: URL? = nil
+    ) {
+        self.version = version
+        self.archiveURL = archiveURL
+        self.appBundleURL = appBundleURL
+        self.backupBundleURL = backupBundleURL
+    }
+}
+
+public enum AppUpdateApplyMode: String, Codable, Equatable, Sendable {
+    case immediateRelaunch
+    case onQuit
+}
+
+public struct AppUpdateApplyRequest: Codable, Equatable, Sendable {
+    public var stagedUpdate: AppStagedUpdate
+    public var mode: AppUpdateApplyMode
+
+    public init(stagedUpdate: AppStagedUpdate, mode: AppUpdateApplyMode) {
+        self.stagedUpdate = stagedUpdate
+        self.mode = mode
+    }
+}
+
 public enum AppUpdatePlanError: Error, Equatable, LocalizedError, Sendable {
     case notAnUpdate
     case missingArchiveAsset

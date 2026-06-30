@@ -9,6 +9,8 @@ if [ -d /Applications ]; then
   [ -n "${latest:-}" ] && export DEVELOPER_DIR="$latest/Contents/Developer"
 fi
 
+scripts/validate-visual-surface-manifest.py
+
 swift run \
   -Xswiftc -warnings-as-errors \
   -Xswiftc -strict-concurrency=complete \

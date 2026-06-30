@@ -49,6 +49,30 @@ Shell CI also runs the doctor inside `scripts/check-downstream-consumers.sh`
 after overriding each consumer to the local shell checkout, so a shell PR cannot
 silently drift away from the current consumer adoption shape.
 
+## Downstream Consumer Control Deck
+
+`scripts/downstream-consumers.json` is the shell-owned source of truth for
+downstream native Ouro app adoption. A consumer row declares:
+
+- the Git repository and pinned/live refs used by shell compatibility checks
+- the app-local control deck path, normally `config/ouro-app-control-deck.json`
+- the shell-first surfaces the consumer claims to adopt
+- the smoke commands shell CI runs after overriding the consumer to this shell
+  checkout
+
+Adding a third native Ouro app should start with the scaffold output, then add
+one manifest row and an app-local control deck in that repository. The shell
+workflows derive their consumer matrix with:
+
+```bash
+scripts/check-downstream-consumers.sh --print-matrix
+```
+
+The downstream checker clones consumers into `.downstream-consumers` only as a
+runtime cache. Completed consumer clones are deleted by default so repo scans do
+not accidentally traverse stale downstream checkouts. Use `--keep-worktree` (or
+`OURO_DOWNSTREAM_KEEP_WORKTREE=true`) when debugging a local downstream failure.
+
 ## Adapter Rule
 
 Each consuming app should have exactly one obvious shell adapter module. New
@@ -78,8 +102,8 @@ Downstream pins move in two phases. Shell changes first stay compatible with the
 existing pinned app commits. Contract files in consumers should contain typed
 `OuroAppShellContract` declarations, not shell-owned UI implementations. After
 each consumer adopts the contract helper on main, this repo refreshes
-`scripts/downstream-consumers.contract.tsv` to those consumer commits so shell CI
-proves the declared contract path, not only build compatibility.
+`scripts/downstream-consumers.json` to those consumer commits so shell CI proves
+the declared contract path, not only build compatibility.
 CI also reports `scripts/check-downstream-consumers.sh --warn-pins-current` as
 an advisory freshness signal. A listed live ref moving is not itself a shell
 compatibility failure; pinned downstream smokes remain blocking on PRs, and the

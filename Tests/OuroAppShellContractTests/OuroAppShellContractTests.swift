@@ -119,6 +119,61 @@ final class OuroAppShellContractTests: XCTestCase {
         )
     }
 
+    func testSettingsContractDeclaresSharedSections() {
+        let settings = OuroAppShellSettingsContract(
+            entryPoint: "Ouro Workbench > Settings",
+            sharedSections: [
+                .updates(entryPoint: "Settings > Software Updates"),
+                .telemetry(entryPoint: "Settings > Privacy"),
+                .privacy(entryPoint: "Settings > Privacy"),
+                .about(entryPoint: "Help > About Ouro Workbench"),
+                .keyboardShortcuts(entryPoint: "Ouro Workbench > Keyboard Shortcuts")
+            ],
+            appOwnedSections: ["Terminal", "Boss"]
+        )
+
+        XCTAssertEqual(settings.sharedSections.map(\.kind), [.updates, .telemetry, .privacy, .about, .keyboardShortcuts])
+        XCTAssertEqual(settings.appOwnedSections, ["Terminal", "Boss"])
+    }
+
+    func testValidationRejectsMalformedSettingsSectionsAndDiagnostics() {
+        let contract = OuroAppShellContract(
+            identity: AppShellIdentity(
+                appName: "Ouro Workbench",
+                bundleIdentifier: "com.ourostack.workbench",
+                repository: "ourostack/ouro-workbench",
+                version: "0.1.186"
+            ),
+            requiredSurfaces: [],
+            settings: OuroAppShellSettingsContract(
+                entryPoint: "Ouro Workbench > Settings",
+                sharedSections: [
+                    OuroAppShellSettingsSectionContract(kind: .updates, entryPoint: " ")
+                ],
+                appOwnedSections: [" "]
+            ),
+            privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract(
+                telemetryConsentEntryPoint: " ",
+                privacyDocumentURL: URL(string: "https://ouroboros.bot/privacy")!,
+                diagnosticsExportDisclosure: " ",
+                supportBundleContents: ["runtime.txt", " "],
+                redactionGuarantees: ["no transcript contents", " "]
+            )
+        )
+
+        XCTAssertEqual(
+            OuroAppShellContractValidator.validate(contract).map(\.code),
+            [
+                .emptySharedSettingsSectionEntryPoint,
+                .emptyAppOwnedSettingsSection,
+                .emptyTelemetryConsentEntryPoint,
+                .emptyDiagnosticsExportDisclosure,
+                .emptySupportBundleContent,
+                .emptyRedactionGuarantee
+            ]
+        )
+    }
+
     func testContractIsCodable() throws {
         let contract = Self.validContract()
 
@@ -126,6 +181,27 @@ final class OuroAppShellContractTests: XCTestCase {
         let decoded = try JSONDecoder().decode(OuroAppShellContract.self, from: encoded)
 
         XCTAssertEqual(decoded, contract)
+    }
+
+    func testReleaseUpdateContractSupportsExplicitInstallCapabilityModes() throws {
+        let review = OuroAppShellReleaseUpdateContract(
+            policy: .stable(),
+            installCapability: .reviewThenInstall,
+            supportsReleasePage: true
+        )
+        let direct = OuroAppShellReleaseUpdateContract(
+            policy: .stable(),
+            installCapability: .directInstallAndRelaunch,
+            supportsReleasePage: true
+        )
+
+        XCTAssertFalse(review.supportsInstallAndRelaunch)
+        XCTAssertTrue(direct.supportsInstallAndRelaunch)
+        XCTAssertEqual(review.installCapability, .reviewThenInstall)
+
+        let encoded = try JSONEncoder().encode(review)
+        let decoded = try JSONDecoder().decode(OuroAppShellReleaseUpdateContract.self, from: encoded)
+        XCTAssertEqual(decoded, review)
     }
 
     private static func validContract() -> OuroAppShellContract {
@@ -140,7 +216,7 @@ final class OuroAppShellContractTests: XCTestCase {
             requiredSurfaces: [.appIdentity, .releaseUpdates, .about, .keyboardShortcuts, .windowChrome, .settings],
             releaseUpdates: OuroAppShellReleaseUpdateContract(
                 policy: .buildMatchedPrerelease(namePrefix: "OuroWorkbench-"),
-                supportsInstallAndRelaunch: true,
+                installCapability: .directInstallAndRelaunch,
                 supportsReleasePage: true
             ),
             about: OuroAppShellAboutContract(
@@ -171,7 +247,21 @@ final class OuroAppShellContractTests: XCTestCase {
             ],
             settings: OuroAppShellSettingsContract(
                 entryPoint: "Ouro Workbench > Settings",
+                sharedSections: [
+                    .updates(entryPoint: "Settings > Software Updates"),
+                    .telemetry(entryPoint: "Settings > Privacy"),
+                    .privacy(entryPoint: "Settings > Privacy"),
+                    .about(entryPoint: "Help > About Ouro Workbench"),
+                    .keyboardShortcuts(entryPoint: "Ouro Workbench > Keyboard Shortcuts")
+                ],
                 appOwnedSections: ["Agents", "Terminal"]
+            ),
+            privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract(
+                telemetryConsentEntryPoint: "Settings > Privacy",
+                privacyDocumentURL: URL(string: "https://github.com/ourostack/ouro-workbench/blob/main/README.md#support-diagnostics")!,
+                diagnosticsExportDisclosure: "Support Diagnostics creates a local zip with runtime evidence.",
+                supportBundleContents: ["system.txt", "app-bundle.txt", "runtime.txt", "workspace-summary.txt"],
+                redactionGuarantees: ["no transcript contents by default", "no raw workspace state by default"]
             )
         )
     }

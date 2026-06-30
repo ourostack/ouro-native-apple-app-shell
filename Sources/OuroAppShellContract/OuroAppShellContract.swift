@@ -10,6 +10,7 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
     public var commandManifest: OuroAppShellCommandSurfaceManifest?
     public var utilityWindows: [OuroAppShellUtilityWindowContract]
     public var settings: OuroAppShellSettingsContract?
+    public var privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract?
 
     public init(
         identity: AppShellIdentity,
@@ -19,7 +20,8 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
         commandReference: OuroAppShellCommandReferenceContract? = nil,
         commandManifest: OuroAppShellCommandSurfaceManifest? = nil,
         utilityWindows: [OuroAppShellUtilityWindowContract] = [],
-        settings: OuroAppShellSettingsContract? = nil
+        settings: OuroAppShellSettingsContract? = nil,
+        privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract? = nil
     ) {
         self.identity = identity
         self.requiredSurfaces = requiredSurfaces
@@ -29,6 +31,7 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
         self.commandManifest = commandManifest
         self.utilityWindows = utilityWindows
         self.settings = settings
+        self.privacyDiagnostics = privacyDiagnostics
     }
 
     public var shellFirstRequiredSurfaces: [AppShellSurface] {
@@ -38,17 +41,33 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
 
 public struct OuroAppShellReleaseUpdateContract: Codable, Equatable, Sendable {
     public var policy: ReleaseUpdatePolicy
-    public var supportsInstallAndRelaunch: Bool
+    public var installCapability: ReleaseInstallCapability
     public var supportsReleasePage: Bool
+
+    public var supportsInstallAndRelaunch: Bool {
+        installCapability.canInstallFromShellControl
+    }
+
+    public init(
+        policy: ReleaseUpdatePolicy,
+        installCapability: ReleaseInstallCapability,
+        supportsReleasePage: Bool
+    ) {
+        self.policy = policy
+        self.installCapability = installCapability
+        self.supportsReleasePage = supportsReleasePage
+    }
 
     public init(
         policy: ReleaseUpdatePolicy,
         supportsInstallAndRelaunch: Bool,
         supportsReleasePage: Bool
     ) {
-        self.policy = policy
-        self.supportsInstallAndRelaunch = supportsInstallAndRelaunch
-        self.supportsReleasePage = supportsReleasePage
+        self.init(
+            policy: policy,
+            installCapability: supportsInstallAndRelaunch ? .directInstallAndRelaunch : .none,
+            supportsReleasePage: supportsReleasePage
+        )
     }
 }
 
@@ -140,11 +159,77 @@ public struct OuroAppShellUtilityWindowContract: Codable, Equatable, Sendable {
 
 public struct OuroAppShellSettingsContract: Codable, Equatable, Sendable {
     public var entryPoint: String
+    public var sharedSections: [OuroAppShellSettingsSectionContract]
     public var appOwnedSections: [String]
 
-    public init(entryPoint: String, appOwnedSections: [String] = []) {
+    public init(
+        entryPoint: String,
+        sharedSections: [OuroAppShellSettingsSectionContract] = [],
+        appOwnedSections: [String] = []
+    ) {
         self.entryPoint = entryPoint
+        self.sharedSections = sharedSections
         self.appOwnedSections = appOwnedSections
+    }
+}
+
+public struct OuroAppShellSettingsSectionContract: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Equatable, Sendable {
+        case updates
+        case telemetry
+        case privacy
+        case about
+        case keyboardShortcuts
+    }
+
+    public var kind: Kind
+    public var entryPoint: String
+
+    public init(kind: Kind, entryPoint: String) {
+        self.kind = kind
+        self.entryPoint = entryPoint
+    }
+
+    public static func updates(entryPoint: String) -> Self {
+        Self(kind: .updates, entryPoint: entryPoint)
+    }
+
+    public static func telemetry(entryPoint: String) -> Self {
+        Self(kind: .telemetry, entryPoint: entryPoint)
+    }
+
+    public static func privacy(entryPoint: String) -> Self {
+        Self(kind: .privacy, entryPoint: entryPoint)
+    }
+
+    public static func about(entryPoint: String) -> Self {
+        Self(kind: .about, entryPoint: entryPoint)
+    }
+
+    public static func keyboardShortcuts(entryPoint: String) -> Self {
+        Self(kind: .keyboardShortcuts, entryPoint: entryPoint)
+    }
+}
+
+public struct OuroAppShellPrivacyDiagnosticsContract: Codable, Equatable, Sendable {
+    public var telemetryConsentEntryPoint: String
+    public var privacyDocumentURL: URL
+    public var diagnosticsExportDisclosure: String
+    public var supportBundleContents: [String]
+    public var redactionGuarantees: [String]
+
+    public init(
+        telemetryConsentEntryPoint: String,
+        privacyDocumentURL: URL,
+        diagnosticsExportDisclosure: String,
+        supportBundleContents: [String],
+        redactionGuarantees: [String]
+    ) {
+        self.telemetryConsentEntryPoint = telemetryConsentEntryPoint
+        self.privacyDocumentURL = privacyDocumentURL
+        self.diagnosticsExportDisclosure = diagnosticsExportDisclosure
+        self.supportBundleContents = supportBundleContents
+        self.redactionGuarantees = redactionGuarantees
     }
 }
 
@@ -175,6 +260,12 @@ public struct OuroAppShellContractIssue: Codable, Equatable, Sendable {
         case appOwnedUtilityWindowSurface
         case emptyUtilityWindowTitle
         case emptySettingsEntryPoint
+        case emptySharedSettingsSectionEntryPoint
+        case emptyAppOwnedSettingsSection
+        case emptyTelemetryConsentEntryPoint
+        case emptyDiagnosticsExportDisclosure
+        case emptySupportBundleContent
+        case emptyRedactionGuarantee
     }
 
     public var code: Code
@@ -296,6 +387,12 @@ public enum OuroAppShellContractValidator {
         if let settings = contract.settings, trimmed(settings.entryPoint).isEmpty {
             issues.append(.init(code: .emptySettingsEntryPoint, message: "Settings entry point must not be empty.", surface: .settings))
         }
+        if let settings = contract.settings {
+            issues.append(contentsOf: settingsIssues(settings))
+        }
+        if let privacyDiagnostics = contract.privacyDiagnostics {
+            issues.append(contentsOf: privacyDiagnosticsIssues(privacyDiagnostics))
+        }
 
         return issues
     }
@@ -373,6 +470,38 @@ public enum OuroAppShellContractValidator {
             }
             return issues
         }
+    }
+
+    private static func settingsIssues(_ settings: OuroAppShellSettingsContract) -> [OuroAppShellContractIssue] {
+        var issues: [OuroAppShellContractIssue] = []
+
+        for section in settings.sharedSections where trimmed(section.entryPoint).isEmpty {
+            issues.append(.init(code: .emptySharedSettingsSectionEntryPoint, message: "Shared settings section entry points must not be empty.", surface: .settings))
+        }
+        for section in settings.appOwnedSections where trimmed(section).isEmpty {
+            issues.append(.init(code: .emptyAppOwnedSettingsSection, message: "App-owned settings section names must not be empty.", surface: .settings))
+        }
+
+        return issues
+    }
+
+    private static func privacyDiagnosticsIssues(_ privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract) -> [OuroAppShellContractIssue] {
+        var issues: [OuroAppShellContractIssue] = []
+
+        if trimmed(privacyDiagnostics.telemetryConsentEntryPoint).isEmpty {
+            issues.append(.init(code: .emptyTelemetryConsentEntryPoint, message: "Telemetry consent entry point must not be empty.", surface: .telemetry))
+        }
+        if trimmed(privacyDiagnostics.diagnosticsExportDisclosure).isEmpty {
+            issues.append(.init(code: .emptyDiagnosticsExportDisclosure, message: "Diagnostics export disclosure must not be empty.", surface: .telemetry))
+        }
+        for content in privacyDiagnostics.supportBundleContents where trimmed(content).isEmpty {
+            issues.append(.init(code: .emptySupportBundleContent, message: "Support bundle content descriptions must not be empty.", surface: .telemetry))
+        }
+        for guarantee in privacyDiagnostics.redactionGuarantees where trimmed(guarantee).isEmpty {
+            issues.append(.init(code: .emptyRedactionGuarantee, message: "Redaction guarantees must not be empty.", surface: .telemetry))
+        }
+
+        return issues
     }
 
     private static func trimmed(_ value: String) -> String {

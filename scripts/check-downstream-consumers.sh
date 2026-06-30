@@ -6,30 +6,32 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK_ROOT="${OURO_DOWNSTREAM_WORK_ROOT:-"$ROOT/.downstream-consumers"}"
-CONTRACT_FILE="${OURO_DOWNSTREAM_CONSUMER_CONTRACT:-"$ROOT/scripts/downstream-consumers.contract.tsv"}"
+CONTRACT_FILE="${OURO_DOWNSTREAM_CONSUMER_CONTRACT:-"$ROOT/scripts/downstream-consumers.json"}"
 REF_MODE="${OURO_DOWNSTREAM_CONSUMER_REF_MODE:-pinned}"
 STEP_TIMEOUT_SECONDS="${OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS:-1200}"
 RUN_LOG_DIR="${OURO_DOWNSTREAM_LOG_DIR:-"$WORK_ROOT/_logs"}"
 RUN_ENV_ROOT="${OURO_DOWNSTREAM_ENV_ROOT:-"$WORK_ROOT/_env"}"
 SHELL_PACKAGE="ouro-native-apple-app-shell"
 SHELL_PACKAGE_URL="https://github.com/ourostack/ouro-native-apple-app-shell.git"
-STRICT_FLAGS=(-Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete)
 CONTRACT_ENTRIES=()
 RUN_INDEX=0
 CURRENT_CONSUMER="setup"
+KEEP_WORKTREE="${OURO_DOWNSTREAM_KEEP_WORKTREE:-false}"
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live] [--check-pins-current|--warn-pins-current]
+Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live] [--check-pins-current|--warn-pins-current] [--print-matrix] [--keep-worktree] [--selftest]
 
 By default, checks all downstream consumers in disposable clones under:
   .downstream-consumers
 
 Override with OURO_DOWNSTREAM_WORK_ROOT=/tmp/some-dir when desired.
-By default, consumer refs come from scripts/downstream-consumers.contract.tsv.
+By default, consumer refs and smoke commands come from scripts/downstream-consumers.json.
 Use --ref-mode live, or OURO_DOWNSTREAM_CONSUMER_REF_MODE=live, for live-main canaries.
 Use --check-pins-current to fail fast when pinned_ref differs from live_ref.
 Use --warn-pins-current to warn on stale pins while still failing contract/resolve errors.
+Use --print-matrix to emit a GitHub Actions matrix JSON object from the manifest.
+Completed consumer clones are removed by default. Use --keep-worktree to retain them for debugging.
 Set OURO_DOWNSTREAM_STEP_TIMEOUT_SECONDS=0 to disable the per-command timeout.
 Consumer Swift gates run with isolated HOME/CFFIXED_USER_HOME roots under the work root.
 USAGE
@@ -43,24 +45,82 @@ fail() {
 load_contract() {
   [ -f "$CONTRACT_FILE" ] || fail "missing downstream consumer contract: $CONTRACT_FILE"
 
-  local line name repo pinned_ref live_ref
+  local line
   while IFS= read -r line || [ -n "$line" ]; do
-    case "$line" in
-      ""|\#*) continue ;;
-    esac
+    CONTRACT_ENTRIES+=("$line")
+  done < <(python3 - "$CONTRACT_FILE" <<'PY'
+import json
+import sys
 
-    IFS=$'\t' read -r name repo pinned_ref live_ref <<EOF
-$line
-EOF
+path = sys.argv[1]
+with open(path, encoding="utf-8") as fh:
+    data = json.load(fh)
 
-    [ -n "$name" ] || fail "contract entry has empty name: $line"
-    [ -n "$repo" ] || fail "contract entry for $name has empty repository"
-    [ -n "$pinned_ref" ] || fail "contract entry for $name has empty pinned_ref"
-    [ -n "$live_ref" ] || fail "contract entry for $name has empty live_ref"
-    CONTRACT_ENTRIES+=("$name"$'\t'"$repo"$'\t'"$pinned_ref"$'\t'"$live_ref")
-  done < "$CONTRACT_FILE"
+if data.get("schema_version") != 1:
+    raise SystemExit(f"{path}: schema_version must be 1")
+consumers = data.get("consumers")
+if not isinstance(consumers, list) or not consumers:
+    raise SystemExit(f"{path}: consumers must be a non-empty list")
+
+seen = set()
+for index, consumer in enumerate(consumers):
+    if not isinstance(consumer, dict):
+        raise SystemExit(f"{path}: consumers[{index}] must be an object")
+    missing = [key for key in ("name", "repository", "pinned_ref", "live_ref", "smoke_commands") if not consumer.get(key)]
+    if missing:
+        raise SystemExit(f"{path}: consumers[{index}] missing {', '.join(missing)}")
+    name = consumer["name"]
+    if name in seen:
+        raise SystemExit(f"{path}: duplicate consumer name {name}")
+    seen.add(name)
+    commands = consumer["smoke_commands"]
+    if not isinstance(commands, list) or not all(isinstance(command, str) and "{dir}" in command for command in commands):
+        raise SystemExit(f"{path}: {name} smoke_commands must be strings containing {dir}")
+    print("\t".join([name, consumer["repository"], consumer["pinned_ref"], consumer["live_ref"]]))
+PY
+  )
 
   [ "${#CONTRACT_ENTRIES[@]}" -gt 0 ] || fail "downstream consumer contract is empty: $CONTRACT_FILE"
+}
+
+print_matrix() {
+  python3 - "$CONTRACT_FILE" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    data = json.load(fh)
+print(json.dumps({"consumer": [consumer["name"] for consumer in data["consumers"]]}, separators=(",", ":")))
+PY
+}
+
+consumer_smoke_commands() {
+  local requested="$1"
+  python3 - "$CONTRACT_FILE" "$requested" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    data = json.load(fh)
+for consumer in data["consumers"]:
+    if consumer["name"] == sys.argv[2]:
+        for command in consumer["smoke_commands"]:
+            print(command)
+        break
+else:
+    raise SystemExit(f"unknown consumer: {sys.argv[2]}")
+PY
+}
+
+expand_consumer_command() {
+  local dir="$1"
+  local template="$2"
+  python3 - "$dir" "$template" <<'PY'
+import shlex
+import sys
+
+print(sys.argv[2].replace("{dir}", shlex.quote(sys.argv[1])))
+PY
 }
 
 contract_entry_for() {
@@ -169,6 +229,18 @@ while [ "$#" -gt 0 ]; do
       WARN_PINS_CURRENT=true
       shift
       ;;
+    --print-matrix)
+      PRINT_MATRIX=true
+      shift
+      ;;
+    --keep-worktree)
+      KEEP_WORKTREE=true
+      shift
+      ;;
+    --selftest)
+      SELFTEST=true
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -182,6 +254,26 @@ done
 
 load_contract
 validate_ref_mode
+
+if [ "${PRINT_MATRIX:-false}" = true ]; then
+  print_matrix
+  exit 0
+fi
+
+if [ "${SELFTEST:-false}" = true ]; then
+  matrix="$(print_matrix)"
+  [ "$matrix" = '{"consumer":["ouro-md","ouro-workbench"]}' ] || fail "unexpected manifest matrix: $matrix"
+  consumer_smoke_commands ouro-md | grep -Fq 'swift test --package-path {dir}' || fail "ouro-md smoke commands missing swift test"
+  consumer_smoke_commands ouro-workbench | grep -Fq 'OuroWorkbench --uisurfacetest' || fail "ouro-workbench smoke commands missing UI surface test"
+  if consumer_smoke_commands missing-consumer >/tmp/ouro-downstream-missing.out 2>/tmp/ouro-downstream-missing.err; then
+    fail "selftest expected unknown consumer lookup to fail"
+  fi
+  grep -Fq "unknown consumer: missing-consumer" /tmp/ouro-downstream-missing.err || fail "selftest did not report unknown consumer"
+  expanded="$(expand_consumer_command "/tmp/path with spaces/app" "{dir}/.build/debug/ouro-md --uisurfacetest")"
+  [ "$expanded" = "'/tmp/path with spaces/app'/.build/debug/ouro-md --uisurfacetest" ] || fail "unexpected command expansion: $expanded"
+  printf 'Downstream consumer manifest selftest ok\n'
+  exit 0
+fi
 
 if [ "${#consumers[@]}" -eq 0 ]; then
   while IFS= read -r consumer_name; do
@@ -368,34 +460,27 @@ check_shell_adoption() {
   run "$ROOT/scripts/shell-doctor.sh" --repo "$dir" --consumer "$name"
 }
 
-check_ouro_md() {
-  local dir="$WORK_ROOT/ouro-md"
-  CURRENT_CONSUMER="ouro-md"
-  prepare_consumer ouro-md
+check_manifest_consumer() {
+  local name="$1"
+  local dir="$WORK_ROOT/$name"
+  local command expanded
+  CURRENT_CONSUMER="$name"
+  prepare_consumer "$name"
   override_shell_package "$dir"
-  check_shell_adoption ouro-md "$dir"
+  check_shell_adoption "$name" "$dir"
 
-  run_consumer swift build --package-path "$dir"
-  run_consumer swift test --package-path "$dir"
-  run_consumer "$dir/.build/debug/ouro-md" --uisurfacetest
-}
+  while IFS= read -r command || [ -n "$command" ]; do
+    expanded="$(expand_consumer_command "$dir" "$command")"
+    run_consumer bash -lc "$expanded"
+  done < <(consumer_smoke_commands "$name")
 
-check_ouro_workbench() {
-  local dir="$WORK_ROOT/ouro-workbench"
-  CURRENT_CONSUMER="ouro-workbench"
-  prepare_consumer ouro-workbench
-  override_shell_package "$dir"
-  check_shell_adoption ouro-workbench "$dir"
-
-  run_consumer swift test --package-path "$dir" "${STRICT_FLAGS[@]}"
-  run_consumer swift run --package-path "$dir" "${STRICT_FLAGS[@]}" OuroWorkbench --uisurfacetest
+  if [ "$KEEP_WORKTREE" != true ]; then
+    rm -rf "$dir"
+  fi
 }
 
 for consumer in "${consumers[@]}"; do
-  case "$consumer" in
-    ouro-md) check_ouro_md ;;
-    ouro-workbench) check_ouro_workbench ;;
-  esac
+  check_manifest_consumer "$consumer"
 done
 
 printf '\nDownstream consumer compatibility ok (%s refs): %s\n' "$REF_MODE" "${consumers[*]}"
