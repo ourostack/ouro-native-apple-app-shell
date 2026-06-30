@@ -58,21 +58,24 @@ jobs:
     name: Downstream contract
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
+      - name: Export downstream consumer matrix
+        id: matrix
+        run: echo "matrix=$(scripts/check-downstream-consumers.sh --print-matrix)" >> "$GITHUB_OUTPUT"
       - name: Report downstream pin freshness
         run: scripts/check-downstream-consumers.sh --warn-pins-current
 
   downstream-consumers:
     name: Downstream / ${{ matrix.consumer }}
+    needs: downstream-contract
     runs-on: macos-14
     timeout-minutes: 35
     strategy:
       fail-fast: false
-      matrix:
-        consumer:
-          - ouro-md
-          - ouro-workbench
+      matrix: ${{ fromJSON(needs.downstream-contract.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v6
       - name: Select newest Xcode

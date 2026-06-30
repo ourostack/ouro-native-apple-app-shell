@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "description": "Shell-owned control deck for downstream native Ouro app compatibility checks.",
+  "clone_policy": {
+    "default_keep_worktree": false
+  },
+  "consumers": [
+    {
+      "name": "ouro-md",
+      "repository": "https://github.com/ourostack/ouro-md.git",
+      "pinned_ref": "97681aa703d364abb090b1f42228d4e1ea34e8ce",
+      "live_ref": "main",
+      "local_manifest": "config/ouro-app-control-deck.json",
+      "adoption_surfaces": [
+        "appIdentity",
+        "releaseUpdates",
+        "about",
+        "keyboardShortcuts",
+        "settings",
+        "windowChrome"
+      ],
+      "smoke_commands": [
+        "swift build --package-path {dir}",
+        "swift test --package-path {dir}",
+        "{dir}/.build/debug/ouro-md --uisurfacetest"
+      ]
+    },
+    {
+      "name": "ouro-workbench",
+      "repository": "https://github.com/ourostack/ouro-workbench.git",
+      "pinned_ref": "3c9ede6a8ed2d8d027c792a68daee695a1fc4f5b",
+      "live_ref": "main",
+      "local_manifest": "config/ouro-app-control-deck.json",
+      "adoption_surfaces": [
+        "appIdentity",
+        "releaseUpdates",
+        "about",
+        "keyboardShortcuts",
+        "settings",
+        "windowChrome"
+      ],
+      "smoke_commands": [
+        "swift test --package-path {dir} -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete",
+        "swift run --package-path {dir} -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete OuroWorkbench --uisurfacetest"
+      ]
+    }
+  ]
+}
