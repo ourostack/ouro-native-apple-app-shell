@@ -181,4 +181,139 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
         XCTAssertFalse(state.canReviewUpdate)
         XCTAssertFalse(state.canInstallUpdate)
     }
+
+    func testLifecyclePresentationDerivesChannelAwareCheckingAndInstallModes() {
+        let checking = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .appStore,
+                installCapability: .none,
+                isChecking: true
+            )
+        )
+
+        XCTAssertEqual(checking.kind, .checking)
+        XCTAssertEqual(checking.statusLine, "Checking for updates...")
+        XCTAssertEqual(checking.metadata, [ReleaseUpdateMetadataItem(id: "channel", label: "Channel", value: "App Store")])
+        XCTAssertFalse(checking.canInstallUpdate)
+
+        let available = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: ReleaseUpdateSnapshot(
+                    status: .updateAvailable,
+                    currentVersion: "0.9.24",
+                    latestVersion: "0.9.25",
+                    tagName: "v0.9.25",
+                    htmlURL: "https://example.test/releases/v0.9.25",
+                    assets: [
+                        ReleaseUpdateAsset(name: "Ouro-MD-0.9.25.zip", downloadURL: "https://example.test/app.zip", size: 10),
+                        ReleaseUpdateAsset(name: "Ouro-MD-0.9.25.manifest.json", downloadURL: "https://example.test/app.manifest.json", size: 5)
+                    ],
+                    detail: "Version 0.9.25 is available."
+                ),
+                channel: .developerIDDirect,
+                installCapability: .reviewThenInstall
+            )
+        )
+
+        XCTAssertEqual(available.metadata.last, ReleaseUpdateMetadataItem(id: "channel", label: "Channel", value: "Developer ID direct download"))
+        XCTAssertTrue(available.canReviewUpdate)
+        XCTAssertFalse(available.canInstallUpdate)
+        XCTAssertEqual(available.detail, "The archive and manifest are present.")
+    }
+
+    func testLifecyclePresentationDerivesInstallingReadyInstalledAndFailedStates() {
+        let notChecked = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .directDownload,
+                installCapability: .none
+            )
+        )
+        XCTAssertEqual(notChecked.kind, .notChecked)
+        XCTAssertEqual(notChecked.metadata, [ReleaseUpdateMetadataItem(id: "channel", label: "Channel", value: "Direct download")])
+
+        let installing = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .directDownload,
+                installCapability: .directInstallAndRelaunch,
+                isInstalling: true,
+                installStatus: "Installing 0.9.25..."
+            )
+        )
+        XCTAssertEqual(installing.kind, .installing)
+        XCTAssertEqual(installing.detail, "Installing 0.9.25...")
+
+        let ready = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .directDownload,
+                installCapability: .readyToRelaunch,
+                stagedUpdateVersion: "0.9.25"
+            )
+        )
+        XCTAssertEqual(ready.kind, .readyToRelaunch)
+        XCTAssertTrue(ready.canInstallUpdate)
+
+        let installed = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .directDownload,
+                installCapability: .directInstallAndRelaunch,
+                recentlyInstalledVersion: "0.9.25"
+            )
+        )
+        XCTAssertEqual(installed.kind, .installed)
+        XCTAssertEqual(installed.statusLine, "Updated to 0.9.25 on this launch.")
+
+        let failed = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .directDownload,
+                installCapability: .directInstallAndRelaunch,
+                installError: "Install failed."
+            )
+        )
+        XCTAssertEqual(failed.kind, .failed)
+        XCTAssertEqual(failed.warning, "Install failed.")
+
+        let failedWithSnapshot = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: ReleaseUpdateSnapshot(
+                    status: .updateAvailable,
+                    currentVersion: "0.9.24",
+                    latestVersion: "0.9.25",
+                    tagName: "v0.9.25",
+                    htmlURL: "https://example.test/releases/v0.9.25",
+                    assets: [],
+                    detail: "Version 0.9.25 is available."
+                ),
+                channel: .directDownload,
+                installCapability: .directInstallAndRelaunch,
+                installError: "Install failed."
+            )
+        )
+        XCTAssertEqual(failedWithSnapshot.metadata.map(\.value), ["0.9.24", "0.9.25", "Direct download"])
+        XCTAssertTrue(failedWithSnapshot.canReviewUpdate)
+    }
+
+    func testPresentationInputReviewAvailabilityHonorsChecking() {
+        let input = ReleaseUpdatePresentationInput(
+            snapshot: ReleaseUpdateSnapshot(
+                status: .updateAvailable,
+                currentVersion: "0.9.24",
+                latestVersion: "0.9.25",
+                tagName: "v0.9.25",
+                htmlURL: nil,
+                assets: [],
+                detail: "Version 0.9.25 is available."
+            ),
+            channel: .directDownload,
+            installCapability: .directInstallAndRelaunch,
+            isChecking: true
+        )
+
+        XCTAssertFalse(input.canReviewUpdate)
+    }
 }

@@ -107,6 +107,27 @@ final class OuroAppShellContractTests: XCTestCase {
         XCTAssertEqual(decoded, contract)
     }
 
+    func testReleaseUpdateContractSupportsExplicitInstallCapabilityModes() throws {
+        let review = OuroAppShellReleaseUpdateContract(
+            policy: .stable(),
+            installCapability: .reviewThenInstall,
+            supportsReleasePage: true
+        )
+        let direct = OuroAppShellReleaseUpdateContract(
+            policy: .stable(),
+            installCapability: .directInstallAndRelaunch,
+            supportsReleasePage: true
+        )
+
+        XCTAssertFalse(review.supportsInstallAndRelaunch)
+        XCTAssertTrue(direct.supportsInstallAndRelaunch)
+        XCTAssertEqual(review.installCapability, .reviewThenInstall)
+
+        let encoded = try JSONEncoder().encode(review)
+        let decoded = try JSONDecoder().decode(OuroAppShellReleaseUpdateContract.self, from: encoded)
+        XCTAssertEqual(decoded, review)
+    }
+
     private static func validContract() -> OuroAppShellContract {
         OuroAppShellContract(
             identity: AppShellIdentity(
@@ -119,7 +140,7 @@ final class OuroAppShellContractTests: XCTestCase {
             requiredSurfaces: [.appIdentity, .releaseUpdates, .about, .keyboardShortcuts, .windowChrome, .settings],
             releaseUpdates: OuroAppShellReleaseUpdateContract(
                 policy: .buildMatchedPrerelease(namePrefix: "OuroWorkbench-"),
-                supportsInstallAndRelaunch: true,
+                installCapability: .directInstallAndRelaunch,
                 supportsReleasePage: true
             ),
             about: OuroAppShellAboutContract(

@@ -40,6 +40,44 @@ final class AppIdentityTests: XCTestCase {
         XCTAssertEqual(decoded, identity)
     }
 
+    func testDistributionChannelsExposeUserFacingDescriptors() {
+        XCTAssertEqual(DistributionChannel.directDownload.descriptor.displayName, "Direct download")
+        XCTAssertEqual(DistributionChannel.developerIDDirect.descriptor.displayName, "Developer ID direct download")
+        XCTAssertEqual(DistributionChannel.appStore.descriptor.displayName, "App Store")
+        XCTAssertTrue(DistributionChannel.directDownload.descriptor.supportsInAppInstall)
+        XCTAssertTrue(DistributionChannel.developerIDDirect.descriptor.requiresSignedInstaller)
+        XCTAssertFalse(DistributionChannel.appStore.descriptor.supportsInAppInstall)
+    }
+
+    func testReleaseMetadataCarriesChannelHighlightsAndShellPin() throws {
+        let metadata = AppReleaseMetadata(
+            appName: "Ouro MD",
+            version: "0.9.61",
+            build: "61",
+            releaseDate: "2026-06-29",
+            repository: "ourostack/ouro-md",
+            channel: .directDownload,
+            highlights: ["Shared shell adoption"],
+            shellRevision: "38a98a2"
+        )
+
+        XCTAssertEqual(metadata.channelDescriptor.displayName, "Direct download")
+        XCTAssertEqual(metadata.versionLine, "0.9.61 (61)")
+        XCTAssertEqual(metadata.highlights, ["Shared shell adoption"])
+
+        let encoded = try JSONEncoder().encode(metadata)
+        let decoded = try JSONDecoder().decode(AppReleaseMetadata.self, from: encoded)
+        XCTAssertEqual(decoded, metadata)
+
+        let noBuild = AppReleaseMetadata(
+            appName: "Ouro MD",
+            version: "0.9.61",
+            repository: "ourostack/ouro-md",
+            channel: .directDownload
+        )
+        XCTAssertEqual(noBuild.versionLine, "0.9.61")
+    }
+
     func testDefaultUserAgentFallsBackWhenAppNameHasNoTokenCharacters() {
         let identity = AppShellIdentity(
             appName: "---",

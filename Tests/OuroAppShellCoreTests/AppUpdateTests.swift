@@ -129,6 +129,32 @@ final class AppUpdateTests: XCTestCase {
         XCTAssertTrue(AutoUpdatePolicy.shouldCheck(now: last.addingTimeInterval(3600), lastCheck: last, minimumInterval: 3600, enabled: true))
     }
 
+    func testInstallCapabilityModesDescribeRuntimeSurface() {
+        XCTAssertFalse(ReleaseInstallCapability.none.canInstallFromShellControl)
+        XCTAssertFalse(ReleaseInstallCapability.reviewThenInstall.canInstallFromShellControl)
+        XCTAssertTrue(ReleaseInstallCapability.directInstallAndRelaunch.canInstallFromShellControl)
+        XCTAssertTrue(ReleaseInstallCapability.readyToRelaunch.canInstallFromShellControl)
+        XCTAssertTrue(ReleaseInstallCapability.reviewThenInstall.requiresAppReviewPrompt)
+        XCTAssertEqual(ReleaseInstallCapability.none.userFacingSummary, "Updates can be checked, but this surface cannot install them.")
+        XCTAssertEqual(ReleaseInstallCapability.reviewThenInstall.userFacingSummary, "Review update details in the app before installing.")
+        XCTAssertEqual(ReleaseInstallCapability.directInstallAndRelaunch.userFacingSummary, "Install and relaunch directly from shell update controls.")
+        XCTAssertEqual(ReleaseInstallCapability.readyToRelaunch.userFacingSummary, "Relaunch directly from shell update controls after staging completes.")
+    }
+
+    func testStagedUpdatePrimitivesCaptureSharedInstallState() {
+        let staged = AppStagedUpdate(
+            version: "0.10.0",
+            archiveURL: URL(fileURLWithPath: "/tmp/Ouro-MD.zip"),
+            appBundleURL: URL(fileURLWithPath: "/tmp/Ouro MD.app"),
+            backupBundleURL: URL(fileURLWithPath: "/tmp/Ouro MD.previous.app")
+        )
+        let request = AppUpdateApplyRequest(stagedUpdate: staged, mode: .onQuit)
+
+        XCTAssertEqual(staged.version, "0.10.0")
+        XCTAssertEqual(request.mode, .onQuit)
+        XCTAssertEqual(request.stagedUpdate.backupBundleURL?.lastPathComponent, "Ouro MD.previous.app")
+    }
+
     func testManifestDecodesWithExtraReleaseFields() throws {
         let json = """
         {

@@ -35,17 +35,33 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
 
 public struct OuroAppShellReleaseUpdateContract: Codable, Equatable, Sendable {
     public var policy: ReleaseUpdatePolicy
-    public var supportsInstallAndRelaunch: Bool
+    public var installCapability: ReleaseInstallCapability
     public var supportsReleasePage: Bool
+
+    public var supportsInstallAndRelaunch: Bool {
+        installCapability.canInstallFromShellControl
+    }
+
+    public init(
+        policy: ReleaseUpdatePolicy,
+        installCapability: ReleaseInstallCapability,
+        supportsReleasePage: Bool
+    ) {
+        self.policy = policy
+        self.installCapability = installCapability
+        self.supportsReleasePage = supportsReleasePage
+    }
 
     public init(
         policy: ReleaseUpdatePolicy,
         supportsInstallAndRelaunch: Bool,
         supportsReleasePage: Bool
     ) {
-        self.policy = policy
-        self.supportsInstallAndRelaunch = supportsInstallAndRelaunch
-        self.supportsReleasePage = supportsReleasePage
+        self.init(
+            policy: policy,
+            installCapability: supportsInstallAndRelaunch ? .directInstallAndRelaunch : .none,
+            supportsReleasePage: supportsReleasePage
+        )
     }
 }
 

@@ -153,6 +153,70 @@ public struct ReleaseUpdateViewState: Equatable, Sendable {
         }
     }
 
+    public static func from(presentation: ReleaseUpdatePresentationInput) -> ReleaseUpdateViewState {
+        let channel = presentation.channel.descriptor.displayName
+        if presentation.isChecking {
+            return ReleaseUpdateViewState(
+                kind: .checking,
+                statusLine: "Checking for updates...",
+                metadata: channelMetadata(channel)
+            )
+        }
+        if presentation.isInstalling {
+            return ReleaseUpdateViewState(
+                kind: .installing,
+                statusLine: "Installing update...",
+                metadata: channelMetadata(channel, latest: presentation.stagedUpdateVersion),
+                detail: presentation.installStatus
+            )
+        }
+        if let installError = presentation.installError {
+            return ReleaseUpdateViewState(
+                kind: .failed,
+                statusLine: "Install failed.",
+                metadata: metadata(snapshot: presentation.snapshot, channel: channel, stagedUpdateVersion: presentation.stagedUpdateVersion),
+                warning: installError,
+                canReviewUpdate: presentation.canReviewUpdate,
+                canOpenReleasePage: presentation.canOpenReleasePage
+            )
+        }
+        if let stagedUpdateVersion = presentation.stagedUpdateVersion {
+            return ReleaseUpdateViewState(
+                kind: .readyToRelaunch,
+                statusLine: "Update \(stagedUpdateVersion) is downloaded and ready to install.",
+                metadata: channelMetadata(channel, latest: stagedUpdateVersion),
+                canReviewUpdate: presentation.canReviewUpdate,
+                canInstallUpdate: presentation.installCapability.canInstallFromShellControl,
+                canOpenReleasePage: presentation.canOpenReleasePage
+            )
+        }
+        if let recentlyInstalledVersion = presentation.recentlyInstalledVersion {
+            return ReleaseUpdateViewState(
+                kind: .installed,
+                statusLine: "Updated to \(recentlyInstalledVersion) on this launch.",
+                metadata: channelMetadata(channel, latest: recentlyInstalledVersion),
+                canOpenReleasePage: presentation.canOpenReleasePage
+            )
+        }
+        guard let snapshot = presentation.snapshot else {
+            return ReleaseUpdateViewState(
+                kind: .notChecked,
+                statusLine: "Updates have not been checked yet.",
+                metadata: channelMetadata(channel)
+            )
+        }
+
+        var state = ReleaseUpdateViewState.from(
+            snapshot: snapshot,
+            installPlan: presentation.installPlan,
+            channel: channel
+        )
+        state.canReviewUpdate = presentation.canReviewUpdate
+        state.canInstallUpdate = state.canInstallUpdate && presentation.installCapability.canInstallFromShellControl
+        state.canOpenReleasePage = presentation.canOpenReleasePage
+        return state
+    }
+
     private static func metadata(
         from snapshot: ReleaseUpdateSnapshot,
         channel: String
@@ -163,8 +227,79 @@ public struct ReleaseUpdateViewState: Equatable, Sendable {
         if let latest = snapshot.latestReleaseLabelForPrompt {
             items.append(ReleaseUpdateMetadataItem(label: "Latest", value: latest))
         }
-        items.append(ReleaseUpdateMetadataItem(label: "Channel", value: channel))
+        items.append(ReleaseUpdateMetadataItem(id: "channel", label: "Channel", value: channel))
         return items
+    }
+
+    private static func metadata(
+        snapshot: ReleaseUpdateSnapshot?,
+        channel: String,
+        stagedUpdateVersion: String?
+    ) -> [ReleaseUpdateMetadataItem] {
+        guard let snapshot else {
+            return channelMetadata(channel, latest: stagedUpdateVersion)
+        }
+        return metadata(from: snapshot, channel: channel)
+    }
+
+    private static func channelMetadata(_ channel: String, latest: String? = nil) -> [ReleaseUpdateMetadataItem] {
+        var items: [ReleaseUpdateMetadataItem] = []
+        if let latest {
+            items.append(ReleaseUpdateMetadataItem(id: "latest", label: "Latest", value: latest))
+        }
+        items.append(ReleaseUpdateMetadataItem(id: "channel", label: "Channel", value: channel))
+        return items
+    }
+}
+
+public struct ReleaseUpdatePresentationInput: Equatable, Sendable {
+    public var snapshot: ReleaseUpdateSnapshot?
+    public var channel: DistributionChannel
+    public var installCapability: ReleaseInstallCapability
+    public var isChecking: Bool
+    public var isInstalling: Bool
+    public var installStatus: String?
+    public var installError: String?
+    public var stagedUpdateVersion: String?
+    public var recentlyInstalledVersion: String?
+    public var installPlan: Result<AppUpdatePlan, AppUpdatePlanError>?
+
+    public init(
+        snapshot: ReleaseUpdateSnapshot?,
+        channel: DistributionChannel,
+        installCapability: ReleaseInstallCapability,
+        isChecking: Bool = false,
+        isInstalling: Bool = false,
+        installStatus: String? = nil,
+        installError: String? = nil,
+        stagedUpdateVersion: String? = nil,
+        recentlyInstalledVersion: String? = nil,
+        installPlan: Result<AppUpdatePlan, AppUpdatePlanError>? = nil
+    ) {
+        self.snapshot = snapshot
+        self.channel = channel
+        self.installCapability = installCapability
+        self.isChecking = isChecking
+        self.isInstalling = isInstalling
+        self.installStatus = installStatus
+        self.installError = installError
+        self.stagedUpdateVersion = stagedUpdateVersion
+        self.recentlyInstalledVersion = recentlyInstalledVersion
+        self.installPlan = installPlan
+    }
+
+    public var canReviewUpdate: Bool {
+        if isChecking {
+            return false
+        }
+        if stagedUpdateVersion != nil {
+            return installCapability.requiresAppReviewPrompt
+        }
+        return snapshot?.status == .updateAvailable
+    }
+
+    public var canOpenReleasePage: Bool {
+        !isChecking && snapshot?.htmlURL != nil
     }
 }
 
