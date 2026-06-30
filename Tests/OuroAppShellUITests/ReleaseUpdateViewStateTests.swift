@@ -223,6 +223,16 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
     }
 
     func testLifecyclePresentationDerivesInstallingReadyInstalledAndFailedStates() {
+        let notChecked = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: nil,
+                channel: .directDownload,
+                installCapability: .none
+            )
+        )
+        XCTAssertEqual(notChecked.kind, .notChecked)
+        XCTAssertEqual(notChecked.metadata, [ReleaseUpdateMetadataItem(id: "channel", label: "Channel", value: "Direct download")])
+
         let installing = ReleaseUpdateViewState.from(
             presentation: ReleaseUpdatePresentationInput(
                 snapshot: nil,
@@ -267,5 +277,43 @@ final class ReleaseUpdateViewStateTests: XCTestCase {
         )
         XCTAssertEqual(failed.kind, .failed)
         XCTAssertEqual(failed.warning, "Install failed.")
+
+        let failedWithSnapshot = ReleaseUpdateViewState.from(
+            presentation: ReleaseUpdatePresentationInput(
+                snapshot: ReleaseUpdateSnapshot(
+                    status: .updateAvailable,
+                    currentVersion: "0.9.24",
+                    latestVersion: "0.9.25",
+                    tagName: "v0.9.25",
+                    htmlURL: "https://example.test/releases/v0.9.25",
+                    assets: [],
+                    detail: "Version 0.9.25 is available."
+                ),
+                channel: .directDownload,
+                installCapability: .directInstallAndRelaunch,
+                installError: "Install failed."
+            )
+        )
+        XCTAssertEqual(failedWithSnapshot.metadata.map(\.value), ["0.9.24", "0.9.25", "Direct download"])
+        XCTAssertTrue(failedWithSnapshot.canReviewUpdate)
+    }
+
+    func testPresentationInputReviewAvailabilityHonorsChecking() {
+        let input = ReleaseUpdatePresentationInput(
+            snapshot: ReleaseUpdateSnapshot(
+                status: .updateAvailable,
+                currentVersion: "0.9.24",
+                latestVersion: "0.9.25",
+                tagName: "v0.9.25",
+                htmlURL: nil,
+                assets: [],
+                detail: "Version 0.9.25 is available."
+            ),
+            channel: .directDownload,
+            installCapability: .directInstallAndRelaunch,
+            isChecking: true
+        )
+
+        XCTAssertFalse(input.canReviewUpdate)
     }
 }

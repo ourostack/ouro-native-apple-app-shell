@@ -68,6 +68,14 @@ final class AppIdentityTests: XCTestCase {
         let encoded = try JSONEncoder().encode(metadata)
         let decoded = try JSONDecoder().decode(AppReleaseMetadata.self, from: encoded)
         XCTAssertEqual(decoded, metadata)
+
+        let noBuild = AppReleaseMetadata(
+            appName: "Ouro MD",
+            version: "0.9.61",
+            repository: "ourostack/ouro-md",
+            channel: .directDownload
+        )
+        XCTAssertEqual(noBuild.versionLine, "0.9.61")
     }
 
     func testDefaultUserAgentFallsBackWhenAppNameHasNoTokenCharacters() {

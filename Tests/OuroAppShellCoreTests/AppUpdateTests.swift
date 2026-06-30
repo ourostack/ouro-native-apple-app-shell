@@ -135,7 +135,10 @@ final class AppUpdateTests: XCTestCase {
         XCTAssertTrue(ReleaseInstallCapability.directInstallAndRelaunch.canInstallFromShellControl)
         XCTAssertTrue(ReleaseInstallCapability.readyToRelaunch.canInstallFromShellControl)
         XCTAssertTrue(ReleaseInstallCapability.reviewThenInstall.requiresAppReviewPrompt)
+        XCTAssertEqual(ReleaseInstallCapability.none.userFacingSummary, "Updates can be checked, but this surface cannot install them.")
+        XCTAssertEqual(ReleaseInstallCapability.reviewThenInstall.userFacingSummary, "Review update details in the app before installing.")
         XCTAssertEqual(ReleaseInstallCapability.directInstallAndRelaunch.userFacingSummary, "Install and relaunch directly from shell update controls.")
+        XCTAssertEqual(ReleaseInstallCapability.readyToRelaunch.userFacingSummary, "Relaunch directly from shell update controls after staging completes.")
     }
 
     func testStagedUpdatePrimitivesCaptureSharedInstallState() {
