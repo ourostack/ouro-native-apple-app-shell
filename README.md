@@ -66,3 +66,5 @@ ordering belong.
 
 See [docs/shell-boundary.md](docs/shell-boundary.md) for the ownership contract
 used by consumers and CI.
+For a short map of source-of-truth docs and executable validation references,
+see [docs/INDEX.md](docs/INDEX.md).
