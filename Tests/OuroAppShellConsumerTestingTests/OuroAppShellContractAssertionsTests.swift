@@ -70,6 +70,24 @@ final class OuroAppShellContractAssertionsTests: XCTestCase {
         }
     }
 
+    func testAssertCommandManifestMatchesReferenceSurfacesMissingReference() {
+        var contract = Self.ouroMDStyleContract()
+        contract.commandReference = nil
+
+        XCTExpectFailure("missing command reference should fail manifest/reference parity", strict: true) {
+            OuroAppShellContractAssertions.assertCommandManifestMatchesReference(contract)
+        }
+    }
+
+    func testAssertCommandManifestMatchesReferenceSurfacesMissingManifest() {
+        var contract = Self.ouroMDStyleContract()
+        contract.commandManifest = nil
+
+        XCTExpectFailure("missing command manifest should fail manifest/reference parity", strict: true) {
+            OuroAppShellContractAssertions.assertCommandManifestMatchesReference(contract)
+        }
+    }
+
     private static func ouroMDStyleContract() -> OuroAppShellContract {
         OuroAppShellContract(
             identity: AppShellIdentity(
