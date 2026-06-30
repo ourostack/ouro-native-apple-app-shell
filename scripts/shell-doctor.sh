@@ -647,6 +647,7 @@ enum FakeShellContract {
             releaseUpdates: OuroAppShellReleaseUpdateContract(policy: .stable(assetNamingPolicy: .versionedArchiveAndManifest(namePrefix: "Fake-")), supportsInstallAndRelaunch: true, supportsReleasePage: true),
             about: OuroAppShellAboutContract(subtitle: "Fake app", repositoryURL: URL(string: "https://github.com/ourostack/fake")),
             commandReference: OuroAppShellCommandReferenceContract(title: "Keyboard Shortcuts", commandCount: 1, sections: ["Global"], entryPoint: "Help > Keyboard Shortcuts"),
+            commandManifest: OuroAppShellCommandSurfaceManifest(commands: [.init(id: "global.shortcuts", title: "Keyboard Shortcuts", section: "Global", shortcut: "⌘/")]),
             utilityWindows: [.init(id: "about", surface: .about, title: "About Fake")],
             settings: OuroAppShellSettingsContract(entryPoint: "Fake > Settings")
         )
@@ -667,6 +668,7 @@ final class FakeShellContractTests: XCTestCase {
 EOF
   mkdir -p "$valid/.build/checkouts/ouro-native-apple-app-shell/scripts"
   ln -s "$ROOT/scripts/check-shell-boundary.sh" "$valid/.build/checkouts/ouro-native-apple-app-shell/scripts/check-shell-boundary.sh"
+  ln -s "$ROOT/scripts/analyze-shell-boundary.py" "$valid/.build/checkouts/ouro-native-apple-app-shell/scripts/analyze-shell-boundary.py"
   cat >"$valid/scripts/check-shell-boundary.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail

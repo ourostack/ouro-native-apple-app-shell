@@ -11,6 +11,11 @@ final class OuroAppShellContractAssertionsTests: XCTestCase {
             [.appIdentity, .releaseUpdates, .about, .keyboardShortcuts, .windowChrome, .settings]
         )
         OuroAppShellContractAssertions.assertValid(contract)
+        OuroAppShellContractAssertions.assertCommandManifestMatchesReference(contract)
+        OuroAppShellContractAssertions.assertCommandManifest(
+            contract,
+            matches: contract.commandManifest?.commands ?? []
+        )
     }
 
     func testAdapterLibraryFixtureUsesHelper() {
@@ -21,6 +26,7 @@ final class OuroAppShellContractAssertionsTests: XCTestCase {
             [.appIdentity, .releaseUpdates, .about, .keyboardShortcuts, .windowChrome, .settings]
         )
         OuroAppShellContractAssertions.assertValid(contract)
+        OuroAppShellContractAssertions.assertCommandManifestMatchesReference(contract)
     }
 
     func testMessageFormatsIssuesForConsumerFailures() {
@@ -64,6 +70,24 @@ final class OuroAppShellContractAssertionsTests: XCTestCase {
         }
     }
 
+    func testAssertCommandManifestMatchesReferenceSurfacesMissingReference() {
+        var contract = Self.ouroMDStyleContract()
+        contract.commandReference = nil
+
+        XCTExpectFailure("missing command reference should fail manifest/reference parity", strict: true) {
+            OuroAppShellContractAssertions.assertCommandManifestMatchesReference(contract)
+        }
+    }
+
+    func testAssertCommandManifestMatchesReferenceSurfacesMissingManifest() {
+        var contract = Self.ouroMDStyleContract()
+        contract.commandManifest = nil
+
+        XCTExpectFailure("missing command manifest should fail manifest/reference parity", strict: true) {
+            OuroAppShellContractAssertions.assertCommandManifestMatchesReference(contract)
+        }
+    }
+
     private static func ouroMDStyleContract() -> OuroAppShellContract {
         OuroAppShellContract(
             identity: AppShellIdentity(
@@ -84,10 +108,14 @@ final class OuroAppShellContractAssertionsTests: XCTestCase {
             ),
             commandReference: OuroAppShellCommandReferenceContract(
                 title: "Keyboard Shortcuts",
-                commandCount: 12,
+                commandCount: 2,
                 sections: ["File", "Editing"],
                 entryPoint: "Help > Keyboard Shortcuts"
             ),
+            commandManifest: OuroAppShellCommandSurfaceManifest(commands: [
+                .init(id: "file.new", title: "New Document", section: "File", shortcut: "⌘N", menuPath: "File > New"),
+                .init(id: "edit.find", title: "Find", section: "Editing", shortcut: "⌘F", menuPath: "Edit > Find > Find")
+            ]),
             utilityWindows: [
                 OuroAppShellUtilityWindowContract(id: "about", surface: .about, title: "About Ouro MD")
             ],
@@ -118,10 +146,14 @@ final class OuroAppShellContractAssertionsTests: XCTestCase {
             ),
             commandReference: OuroAppShellCommandReferenceContract(
                 title: "Keyboard Shortcuts",
-                commandCount: 18,
+                commandCount: 2,
                 sections: ["Global", "Workbench"],
                 entryPoint: "Help > Keyboard Shortcuts"
             ),
+            commandManifest: OuroAppShellCommandSurfaceManifest(commands: [
+                .init(id: "global.palette", title: "Command Palette", section: "Global", shortcut: "⌘K", menuPath: "Ouro Workbench > Commands"),
+                .init(id: "workbench.new-terminal", title: "New Terminal", section: "Workbench", shortcut: "⌘N", menuPath: "File > New Terminal")
+            ]),
             utilityWindows: [
                 OuroAppShellUtilityWindowContract(id: "shortcuts", surface: .keyboardShortcuts, title: "Keyboard Shortcuts"),
                 OuroAppShellUtilityWindowContract(id: "about", surface: .about, title: "About Ouro Workbench")

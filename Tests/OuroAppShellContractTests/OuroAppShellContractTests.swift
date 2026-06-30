@@ -98,6 +98,27 @@ final class OuroAppShellContractTests: XCTestCase {
         )
     }
 
+    func testValidationRejectsCommandManifestDrift() {
+        var contract = Self.validContract()
+        contract.commandManifest = OuroAppShellCommandSurfaceManifest(commands: [
+            .init(id: "global.palette", title: "Command Palette", section: "Global", shortcut: "⌘K"),
+            .init(id: "global.palette", title: "Duplicate Palette", section: "Global", shortcut: "⌘K"),
+            .init(id: "", title: "", section: "")
+        ])
+
+        XCTAssertEqual(
+            OuroAppShellContractValidator.validate(contract).map(\.code),
+            [
+                .emptyCommandID,
+                .emptyCommandTitle,
+                .emptyCommandSection,
+                .duplicateCommandID,
+                .commandManifestCountMismatch,
+                .commandManifestSectionsMismatch
+            ]
+        )
+    }
+
     func testSettingsContractDeclaresSharedSections() {
         let settings = OuroAppShellSettingsContract(
             entryPoint: "Ouro Workbench > Settings",
@@ -204,10 +225,14 @@ final class OuroAppShellContractTests: XCTestCase {
             ),
             commandReference: OuroAppShellCommandReferenceContract(
                 title: "Keyboard Shortcuts",
-                commandCount: 18,
+                commandCount: 2,
                 sections: ["Global", "Workbench"],
                 entryPoint: "Help > Keyboard Shortcuts"
             ),
+            commandManifest: OuroAppShellCommandSurfaceManifest(commands: [
+                .init(id: "global.palette", title: "Command Palette", section: "Global", shortcut: "⌘K", menuPath: "Ouro Workbench > Commands", commandPaletteTitle: "Command Palette"),
+                .init(id: "workbench.new-terminal", title: "New Terminal", section: "Workbench", shortcut: "⌘N", menuPath: "File > New Terminal", commandPaletteTitle: "New Terminal")
+            ]),
             utilityWindows: [
                 OuroAppShellUtilityWindowContract(
                     id: "keyboard-shortcuts",

@@ -7,6 +7,7 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
     public var releaseUpdates: OuroAppShellReleaseUpdateContract?
     public var about: OuroAppShellAboutContract?
     public var commandReference: OuroAppShellCommandReferenceContract?
+    public var commandManifest: OuroAppShellCommandSurfaceManifest?
     public var utilityWindows: [OuroAppShellUtilityWindowContract]
     public var settings: OuroAppShellSettingsContract?
     public var privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract?
@@ -17,6 +18,7 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
         releaseUpdates: OuroAppShellReleaseUpdateContract? = nil,
         about: OuroAppShellAboutContract? = nil,
         commandReference: OuroAppShellCommandReferenceContract? = nil,
+        commandManifest: OuroAppShellCommandSurfaceManifest? = nil,
         utilityWindows: [OuroAppShellUtilityWindowContract] = [],
         settings: OuroAppShellSettingsContract? = nil,
         privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract? = nil
@@ -26,6 +28,7 @@ public struct OuroAppShellContract: Codable, Equatable, Sendable {
         self.releaseUpdates = releaseUpdates
         self.about = about
         self.commandReference = commandReference
+        self.commandManifest = commandManifest
         self.utilityWindows = utilityWindows
         self.settings = settings
         self.privacyDiagnostics = privacyDiagnostics
@@ -89,6 +92,56 @@ public struct OuroAppShellCommandReferenceContract: Codable, Equatable, Sendable
         self.commandCount = commandCount
         self.sections = sections
         self.entryPoint = entryPoint
+    }
+}
+
+public struct OuroAppShellCommandSurfaceManifest: Codable, Equatable, Sendable {
+    public var commands: [OuroAppShellCommandSurface]
+
+    public init(commands: [OuroAppShellCommandSurface]) {
+        self.commands = commands
+    }
+
+    public var count: Int {
+        commands.count
+    }
+
+    public var sections: [String] {
+        var seen = Set<String>()
+        return commands.compactMap { command in
+            guard seen.insert(command.section).inserted else {
+                return nil
+            }
+            return command.section
+        }
+    }
+}
+
+public struct OuroAppShellCommandSurface: Codable, Equatable, Identifiable, Sendable {
+    public var id: String
+    public var title: String
+    public var section: String
+    public var shortcut: String?
+    public var menuPath: String?
+    public var commandPaletteTitle: String?
+    public var referenceTitle: String?
+
+    public init(
+        id: String,
+        title: String,
+        section: String,
+        shortcut: String? = nil,
+        menuPath: String? = nil,
+        commandPaletteTitle: String? = nil,
+        referenceTitle: String? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.section = section
+        self.shortcut = shortcut
+        self.menuPath = menuPath
+        self.commandPaletteTitle = commandPaletteTitle
+        self.referenceTitle = referenceTitle
     }
 }
 
@@ -196,6 +249,13 @@ public struct OuroAppShellContractIssue: Codable, Equatable, Sendable {
         case emptyCommandReference
         case emptyCommandReferenceSections
         case emptyCommandReferenceEntryPoint
+        case missingCommandManifest
+        case emptyCommandID
+        case emptyCommandTitle
+        case emptyCommandSection
+        case duplicateCommandID
+        case commandManifestCountMismatch
+        case commandManifestSectionsMismatch
         case emptyUtilityWindowID
         case appOwnedUtilityWindowSurface
         case emptyUtilityWindowTitle
@@ -320,6 +380,9 @@ public enum OuroAppShellContractValidator {
         if let commandReference = contract.commandReference {
             issues.append(contentsOf: commandReferenceIssues(commandReference))
         }
+        if let commandManifest = contract.commandManifest {
+            issues.append(contentsOf: commandManifestIssues(commandManifest, commandReference: contract.commandReference))
+        }
         issues.append(contentsOf: utilityWindowIssues(contract.utilityWindows))
         if let settings = contract.settings, trimmed(settings.entryPoint).isEmpty {
             issues.append(.init(code: .emptySettingsEntryPoint, message: "Settings entry point must not be empty.", surface: .settings))
@@ -348,6 +411,46 @@ public enum OuroAppShellContractValidator {
         }
         if trimmed(commandReference.entryPoint).isEmpty {
             issues.append(.init(code: .emptyCommandReferenceEntryPoint, message: "Command reference entry point must not be empty.", surface: .keyboardShortcuts))
+        }
+
+        return issues
+    }
+
+    private static func commandManifestIssues(
+        _ manifest: OuroAppShellCommandSurfaceManifest,
+        commandReference: OuroAppShellCommandReferenceContract?
+    ) -> [OuroAppShellContractIssue] {
+        var issues: [OuroAppShellContractIssue] = []
+        var seen = Set<String>()
+        var duplicateIDs = Set<String>()
+
+        for command in manifest.commands {
+            if trimmed(command.id).isEmpty {
+                issues.append(.init(code: .emptyCommandID, message: "Command manifest items must have ids.", surface: .keyboardShortcuts))
+            } else if !seen.insert(command.id).inserted {
+                duplicateIDs.insert(command.id)
+            }
+            if trimmed(command.title).isEmpty {
+                issues.append(.init(code: .emptyCommandTitle, message: "Command manifest items must have titles.", surface: .keyboardShortcuts))
+            }
+            if trimmed(command.section).isEmpty {
+                issues.append(.init(code: .emptyCommandSection, message: "Command manifest items must have sections.", surface: .keyboardShortcuts))
+            }
+        }
+
+        for duplicateID in duplicateIDs.sorted() {
+            issues.append(.init(code: .duplicateCommandID, message: "Command manifest id is duplicated: \(duplicateID).", surface: .keyboardShortcuts))
+        }
+
+        if let commandReference {
+            if commandReference.commandCount != manifest.count {
+                issues.append(.init(code: .commandManifestCountMismatch, message: "Command reference count must match the command manifest.", surface: .keyboardShortcuts))
+            }
+            let manifestSections = manifest.sections
+            let representedReferenceSections = commandReference.sections.filter { manifestSections.contains($0) }
+            if representedReferenceSections != manifestSections {
+                issues.append(.init(code: .commandManifestSectionsMismatch, message: "Command reference sections must match the command manifest.", surface: .keyboardShortcuts))
+            }
         }
 
         return issues

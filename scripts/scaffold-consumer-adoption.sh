@@ -200,6 +200,17 @@ write(
                     sections: ["Global"],
                     entryPoint: "Help > Keyboard Shortcuts"
                 ),
+                commandManifest: OuroAppShellCommandSurfaceManifest(commands: [
+                    OuroAppShellCommandSurface(
+                        id: "global.keyboard-shortcuts",
+                        title: "Keyboard Shortcuts",
+                        section: "Global",
+                        shortcut: "⌘/",
+                        menuPath: "Help > Keyboard Shortcuts",
+                        commandPaletteTitle: "Keyboard Shortcuts",
+                        referenceTitle: "Keyboard Shortcuts"
+                    )
+                ]),
                 utilityWindows: [
                     OuroAppShellUtilityWindowContract(id: "about", surface: .about, title: {swift_string("About " + args.app_name)}),
                     OuroAppShellUtilityWindowContract(id: "shortcuts", surface: .keyboardShortcuts, title: "Keyboard Shortcuts"),
@@ -225,6 +236,7 @@ write(
                 {contract_type}.contract,
                 {contract_type}.requiredSurfaces
             )
+            OuroAppShellContractAssertions.assertCommandManifestMatchesReference({contract_type}.contract)
         }}
     }}
     """,
