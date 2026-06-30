@@ -49,10 +49,4 @@ final class ReleaseAssetNamingPolicyTests: XCTestCase {
         XCTAssertEqual(build, "340")
     }
 
-    func testLegacyWorkbenchPolicyUsesBuildMatchedNaming() {
-        XCTAssertEqual(
-            ReleaseAssetNamingPolicy.workbench(),
-            .buildMatchedArchiveAndManifest(namePrefix: "OuroWorkbench-")
-        )
-    }
 }

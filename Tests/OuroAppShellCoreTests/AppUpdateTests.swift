@@ -56,7 +56,7 @@ final class AppUpdateTests: XCTestCase {
             ReleaseUpdateAsset(name: "OuroWorkbench-0.1.122-build.199-779ed85.manifest.json", downloadURL: "https://example.com/right.manifest.json", size: 1)
         ]
         let plan = try AppUpdatePlanner.plan(
-            from: snapshot(status: .updateAvailable, latest: "0.1.122", latestBuild: "199", policy: .workbench(), assets: assets)
+            from: snapshot(status: .updateAvailable, latest: "0.1.122", latestBuild: "199", policy: .buildMatchedArchiveAndManifest(namePrefix: "OuroWorkbench-"), assets: assets)
         ).get()
 
         XCTAssertEqual(plan.build, "199")
@@ -303,7 +303,7 @@ final class AppUpdateTests: XCTestCase {
                 status: .updateAvailable,
                 latest: "0.1.122",
                 latestBuild: "199",
-                policy: .workbench(),
+                policy: .buildMatchedArchiveAndManifest(namePrefix: "OuroWorkbench-"),
                 assets: workbenchInstallableAssets
             )
         ).get()

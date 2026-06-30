@@ -59,13 +59,6 @@ public struct ReleaseAssetNamingPolicy: Codable, Equatable, Sendable {
         )
     }
 
-    public static func workbench(namePrefix: String = "OuroWorkbench-") -> ReleaseAssetNamingPolicy {
-        buildMatchedArchiveAndManifest(
-            namePrefix: namePrefix,
-            buildMarker: "-build."
-        )
-    }
-
     public func isArchive(_ name: String) -> Bool {
         name.hasSuffix(archiveSuffix)
     }

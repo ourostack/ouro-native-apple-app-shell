@@ -16,6 +16,8 @@ Usage: check-shell-boundary.sh [--repo PATH] [--allowlist FILE] [--selftest]
 Rules are intentionally textual and conservative: they catch new app-local
 shell-owned primitives before review memory has to. Add an allowlist entry only
 when the code is app-domain behavior or intentionally adapter glue.
+The scanner also runs a Swift import/symbol analyzer so contract files cannot
+hide shell UI and adapter files stay measured.
 USAGE
 }
 
@@ -60,6 +62,10 @@ EOF
 import SwiftUI
 func alsoBadContract() -> some View { AppShellCommandReferenceView(catalog: AppShellCommandReferenceCatalog(title: "Commands", sections: [])) }
 EOF
+      cat >"$tmp/Sources/App/ImportOnlyShellContract.swift" <<'EOF'
+import OuroAppShellUI
+func contractMarker() {}
+EOF
       if "$ROOT/scripts/check-shell-boundary.sh" --repo "$tmp" >/tmp/ouro-shell-boundary-selftest.out 2>/tmp/ouro-shell-boundary-selftest.err; then
         cat /tmp/ouro-shell-boundary-selftest.out >&2
         fail "selftest expected app-local NSWindow violation"
@@ -68,10 +74,18 @@ EOF
       grep -Fq "OuroMDShellContract.swift" /tmp/ouro-shell-boundary-selftest.err && fail "selftest should allow shell contract files"
       grep -Fq "Sources/App/LeakyShellContract.swift" /tmp/ouro-shell-boundary-selftest.err || fail "selftest should still report shell UI inside contract files"
       grep -Fq "Sources/App/OuroMDAppShellContract.swift" /tmp/ouro-shell-boundary-selftest.err || fail "selftest should report shell UI inside AppShellContract files"
+      if python3 "$ROOT/scripts/analyze-shell-boundary.py" --repo "$tmp" >/tmp/ouro-shell-boundary-typed.out 2>/tmp/ouro-shell-boundary-typed.err; then
+        cat /tmp/ouro-shell-boundary-typed.out >&2
+        fail "typed selftest expected import-only contract violation"
+      fi
+      grep -Fq "Sources/App/ImportOnlyShellContract.swift" /tmp/ouro-shell-boundary-typed.err || fail "selftest should report shell UI imports inside contract files"
       cat >"$tmp/scripts/shell-boundary-allowlist.txt" <<'EOF'
 Sources/App/AppDelegate.swift	NSWindow(contentRect	legacy fixture
 Sources/App/LeakyShellContract.swift	AppShellCommandReferenceView(	leaky fixture
 Sources/App/OuroMDAppShellContract.swift	AppShellCommandReferenceView(	leaky AppShellContract fixture
+Sources/App/LeakyShellContract.swift	typed-analyzer	leaky contract fixture
+Sources/App/OuroMDAppShellContract.swift	typed-analyzer	leaky AppShellContract fixture
+Sources/App/ImportOnlyShellContract.swift	typed-analyzer	leaky import fixture
 EOF
       "$ROOT/scripts/check-shell-boundary.sh" --repo "$tmp" --allowlist "$tmp/scripts/shell-boundary-allowlist.txt" >/dev/null
       printf 'Shell boundary scanner selftest ok\n'
@@ -158,6 +172,18 @@ EOF
     printf '\nMove shared native app-shell behavior into ouro-native-apple-app-shell, or add a documented allowlist row when this is intentionally app-domain/adapter glue.\n'
   } >&2
   exit 1
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  typed_err="$(mktemp)"
+  if ! python3 "$ROOT/scripts/analyze-shell-boundary.py" --repo "$REPO" --allowlist "$ALLOWLIST" 2>"$typed_err"; then
+    cat "$typed_err" >&2
+    rm -f "$typed_err"
+    exit 1
+  fi
+  rm -f "$typed_err"
+else
+  fail "python3 is required for typed shell boundary analysis"
 fi
 
 printf 'Shell boundary scan ok: %s\n' "$REPO"

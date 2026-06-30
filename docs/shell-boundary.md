@@ -10,7 +10,7 @@ Ouro MD, Ouro Workbench, and future native Ouro apps.
 | App identity, version, repository, channel | Shell | Apps provide values; shell owns the shape. |
 | Release/update checking, labels, prompts, install policy | Shell | Apps may adapt local state, but shared behavior starts here. |
 | About / What's New | Shell | Apps provide copy, identity, actions, and domain release notes. |
-| Keyboard shortcut / command discovery | Shell | Apps provide command rows; shell owns the reference surface. |
+| Keyboard shortcut / command discovery | Shell | Apps provide a command surface manifest; shell owns the reference surface and consumer tests assert manifest/reference parity. |
 | Settings chrome | Adapter | Shared settings sections should move shellward; domain settings stay app-owned. |
 | Utility windows and reusable AppKit presentation | Shell | Apps provide content; shell owns the window presenter. |
 | Telemetry consent and common event envelope | Adapter | Consent/common shape should be shared; event meaning is app-owned. |
@@ -22,7 +22,7 @@ Ouro MD, Ouro Workbench, and future native Ouro apps.
 `OuroAppShellContract` is the shared declaration surface for native app-shell
 adoption. Consuming apps declare identity, required shell-first surfaces, and
 the app-provided descriptors for release updates, About, command reference,
-utility windows, and settings.
+command manifests, utility windows, and settings.
 
 `OuroAppShellConsumerTesting` is the XCTest helper product. Consumers should add
 a small contract test beside their shell adapter so CI fails when an app adds a
@@ -67,6 +67,12 @@ native-app behavior goes through this decision flow:
 The shell owns a boundary scanner. Consumers should run a local wrapper around
 `scripts/check-shell-boundary.sh` so new app-local shell behavior trips CI with a
 direct instruction instead of relying on reviewer memory.
+
+The scanner runs both the existing textual primitive pass and a typed Swift
+import/symbol pass. The typed pass rejects shell UI/AppKit imports inside
+contract files, allows adapter/presentation files only as measured glue, and
+keeps broad filename exemptions from becoming a place where reusable shell
+behavior can quietly accumulate.
 
 Downstream pins move in two phases. Shell changes first stay compatible with the
 existing pinned app commits. Contract files in consumers should contain typed

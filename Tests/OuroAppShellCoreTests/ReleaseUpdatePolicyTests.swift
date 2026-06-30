@@ -30,13 +30,6 @@ final class ReleaseUpdatePolicyTests: XCTestCase {
         XCTAssertFalse(policy.assetNamingPolicy.isInstallableAssetName("OuroWorkbench-0.1.122-build.198-779ed85.zip", version: "0.1.122", build: "199"))
     }
 
-    func testLegacyWorkbenchPolicyUsesBuildMatchedPrereleases() {
-        XCTAssertEqual(
-            ReleaseUpdatePolicy.workbench(),
-            .buildMatchedPrerelease(namePrefix: "OuroWorkbench-")
-        )
-    }
-
     func testCustomPolicyKeepsBothKnobsExplicit() {
         let policy = ReleaseUpdatePolicy(
             assetNamingPolicy: .versionedArchiveAndManifest(namePrefix: "Preview-", buildMarker: "-b.", requiresMatchingBuild: true),

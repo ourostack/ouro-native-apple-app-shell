@@ -31,7 +31,4 @@ public struct ReleaseUpdatePolicy: Codable, Equatable, Sendable {
         )
     }
 
-    public static func workbench(namePrefix: String = "OuroWorkbench-") -> ReleaseUpdatePolicy {
-        buildMatchedPrerelease(namePrefix: namePrefix, buildMarker: "-build.")
-    }
 }

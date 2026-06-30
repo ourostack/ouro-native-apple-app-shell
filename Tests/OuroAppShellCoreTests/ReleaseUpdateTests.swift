@@ -251,7 +251,7 @@ final class ReleaseUpdateTests: XCTestCase {
         """.utf8)
         let configuration = ReleaseUpdateConfiguration(
             identity: workbenchIdentity,
-            releasePolicy: .workbench()
+            releasePolicy: .buildMatchedPrerelease(namePrefix: "OuroWorkbench-")
         )
 
         XCTAssertTrue(configuration.includePrereleases)
@@ -306,7 +306,7 @@ final class ReleaseUpdateTests: XCTestCase {
                 build: "300",
                 userAgent: "OuroWorkbench/0.1.155"
             ),
-            releasePolicy: .workbench()
+            releasePolicy: .buildMatchedPrerelease(namePrefix: "OuroWorkbench-")
         )
 
         let snapshot = try ReleaseUpdateChecker.snapshot(from: data, configuration: configuration)
