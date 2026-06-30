@@ -9,16 +9,26 @@ permissions:
   contents: read
 
 jobs:
+  downstream-live-contract:
+    name: Downstream live contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Export downstream consumer matrix
+        id: matrix
+        run: echo "matrix=$(scripts/check-downstream-consumers.sh --print-matrix)" >> "$GITHUB_OUTPUT"
+
   downstream-live-consumers:
     name: Downstream / live-main / ${{ matrix.consumer }}
+    needs: downstream-live-contract
     runs-on: macos-14
     timeout-minutes: 35
     strategy:
       fail-fast: false
-      matrix:
-        consumer:
-          - ouro-md
-          - ouro-workbench
+      matrix: ${{ fromJSON(needs.downstream-live-contract.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v6
       - name: Select newest Xcode
