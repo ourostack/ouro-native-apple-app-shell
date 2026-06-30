@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "surfaces": [
+    {
+      "id": "about-current",
+      "surface": "about",
+      "state": "currentRelease",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "about-available",
+      "surface": "about",
+      "state": "updateAvailable",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "installed-confirmation",
+      "surface": "releaseUpdates",
+      "state": "installedConfirmation",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "command-reference",
+      "surface": "keyboardShortcuts",
+      "state": "default",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "settings-entry",
+      "surface": "settings",
+      "state": "entryPointDeclared",
+      "validationTool": "appHarness",
+      "owner": "adapter"
+    },
+    {
+      "id": "utility-window-presentation",
+      "surface": "windowChrome",
+      "state": "declaredUtilityWindows",
+      "validationTool": "accessibilityTree",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-notChecked",
+      "surface": "releaseUpdates",
+      "state": "notChecked",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-checking",
+      "surface": "releaseUpdates",
+      "state": "checking",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-current",
+      "surface": "releaseUpdates",
+      "state": "current",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-updateAvailable",
+      "surface": "releaseUpdates",
+      "state": "updateAvailable",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-installing",
+      "surface": "releaseUpdates",
+      "state": "installing",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-readyToRelaunch",
+      "surface": "releaseUpdates",
+      "state": "readyToRelaunch",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-installed",
+      "surface": "releaseUpdates",
+      "state": "installed",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-unavailable",
+      "surface": "releaseUpdates",
+      "state": "unavailable",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "updates-failed",
+      "surface": "releaseUpdates",
+      "state": "failed",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    }
+  ]
+}
