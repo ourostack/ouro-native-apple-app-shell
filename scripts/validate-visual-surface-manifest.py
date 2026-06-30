@@ -19,7 +19,10 @@ def fail(message: str) -> None:
 
 def probe_names() -> set[str]:
     text = PROBE.read_text()
-    literal_names = set(re.findall(r'name:\s*"([^"]+)"', text))
+    literal_names = {
+        name for name in re.findall(r'name:\s*"([^"]+)"', text)
+        if "\\(" not in name
+    }
     literal_names.update(f"updates-{state}" for state in [
         "notChecked",
         "checking",
