@@ -267,9 +267,6 @@ public enum OuroAppShellContractValidator {
         if required.contains(.keyboardShortcuts), contract.commandReference == nil {
             issues.append(.init(code: .missingCommandReference, message: "Keyboard shortcuts require a command reference contract.", surface: .keyboardShortcuts))
         }
-        if required.contains(.keyboardShortcuts), contract.commandManifest == nil {
-            issues.append(.init(code: .missingCommandManifest, message: "Keyboard shortcuts require a command surface manifest.", surface: .keyboardShortcuts))
-        }
         if required.contains(.windowChrome), contract.utilityWindows.isEmpty {
             issues.append(.init(code: .missingUtilityWindows, message: "Window chrome requires at least one utility window contract.", surface: .windowChrome))
         }

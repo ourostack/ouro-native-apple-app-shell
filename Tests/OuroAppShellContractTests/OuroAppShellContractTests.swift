@@ -30,7 +30,6 @@ final class OuroAppShellContractTests: XCTestCase {
                 .missingReleaseUpdates,
                 .missingAbout,
                 .missingCommandReference,
-                .missingCommandManifest,
                 .missingUtilityWindows,
                 .missingSettings
             ]
