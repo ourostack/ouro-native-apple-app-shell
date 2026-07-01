@@ -16,6 +16,12 @@ verify the surface without importing app-specific diagnostics collectors.
 | `supportBundleContents` | High-level list of files or evidence categories included in support bundles. |
 | `redactionGuarantees` | Content categories that are excluded or redacted by default. |
 
+`scripts/scaffold-consumer-adoption.sh` generates a working
+`OuroAppShellPrivacyDiagnosticsContract` for a new consumer fixture. Treat that
+fixture as the starting shape: keep consent and privacy-document entry points in
+the shell contract, then let the app own the concrete support-bundle collector
+and product-specific redaction implementation.
+
 ## Ownership Boundary
 
 The shell owns descriptor shape and validation. Consumers own:

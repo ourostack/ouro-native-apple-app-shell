@@ -10,8 +10,8 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 - `OuroAppShellCore`: pure, testable app identity, release/update, and
   distribution-channel logic shared by native Ouro apps.
 - `OuroAppShellContract`: typed consumer declarations for app identity,
-  shell-first surfaces, release updates, About, command discovery, settings, and
-  reusable utility windows.
+  shell-first surfaces, release updates, About, command discovery, settings,
+  reusable utility windows, and privacy/diagnostics descriptors.
 - `OuroAppShellConsumerTesting`: XCTest helpers that let consumer apps enforce
   their shell contract beside their shell adapter.
 - `OuroAppShellAppKit`: small macOS runtime helpers for reusable utility-window
@@ -28,6 +28,7 @@ Inside Swift code, the package uses the shorter `OuroAppShell` naming.
 - `scripts/ui-surface-probe.sh`
 - `scripts/shell-doctor.sh --selftest`
 - `scripts/scaffold-consumer-adoption.sh --selftest`
+- `scripts/validate-adoption-docs.py`
 - `scripts/check-downstream-consumers.sh`
 
 The UI probe is a package-owned executable that renders representative About,
@@ -63,6 +64,16 @@ Run `scripts/scaffold-consumer-adoption.sh --output /tmp/ouro-shell-fixture
 a minimal package that passes the shell doctor and shows exactly where the
 consumer contract, tests, shell-boundary wrapper, dependency guard, and preflight
 ordering belong.
+
+That generated fixture is the third-app trial path. It depends on the shell
+package products `OuroAppShellCore`, `OuroAppShellContract`, and
+`OuroAppShellConsumerTesting`; declares identity, release/update policy, About,
+command manifest/reference parity, settings, utility windows, and
+privacy/diagnostics descriptors; and writes `config/ouro-app-control-deck.json`
+as the app-local control deck. A real third app should start from this scaffold,
+move the generated contract into its shell adapter, keep app-owned product UI out
+of the shell package, and retain the generated preflight ordering until it has an
+equivalent CI gate.
 
 See [docs/shell-boundary.md](docs/shell-boundary.md) for the ownership contract
 used by consumers and CI.
