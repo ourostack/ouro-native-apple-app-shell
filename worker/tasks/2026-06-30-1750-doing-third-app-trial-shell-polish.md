@@ -82,7 +82,7 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 **Output**: Documentation/control-deck polish.
 **Acceptance**: The doc validation from Unit 2a passes.
 
-### ⬜ Unit 2c: Adoption Docs And Control Deck — Coverage & Refactor
+### ✅ Unit 2c: Adoption Docs And Control Deck — Coverage & Refactor
 **What**: Run docs/scaffold/doctor validation again and inspect generated fixture output for stale wording or generated Packages noise.
 **Output**: Passing validation logs in artifacts.
 **Acceptance**: Docs validation passes, generated fixture remains disposable, and no generated package cache noise is tracked.
@@ -114,3 +114,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - 2026-06-30 18:02 Unit 1c complete: scaffold selftest, shell-doctor selftest, and focused consumer testing Swift tests pass with strict flags.
 - 2026-06-30 18:02 Unit 2a complete: added adoption docs validator; red log shows missing cold-start/control-deck/privacy guidance.
 - 2026-06-30 18:03 Unit 2b complete: README/docs/CI now describe and validate the cold-start scaffold, control deck, package products, and privacy/diagnostics path.
+- 2026-06-30 18:05 Unit 2c complete: docs validator, scaffold selftest, shell-doctor selftest, and disposable fixture inspection pass; no generated package noise tracked.

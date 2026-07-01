@@ -1,0 +1,10 @@
+Package.swift
+README.md
+Sources/FixtureApp/FixtureAppShellContract.swift
+Tests/FixtureAppTests/FixtureAppShellContractTests.swift
+config/ouro-app-control-deck.json
+scripts/check-shell-boundary.sh
+scripts/check-shell-dependency.sh
+scripts/preflight.sh
+scripts/shell-boundary-allowlist.txt
+Generated shell consumer adoption fixture at /private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.KWlMV6p15q/fixture
