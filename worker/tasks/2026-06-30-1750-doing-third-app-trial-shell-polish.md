@@ -116,3 +116,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - 2026-06-30 18:03 Unit 2b complete: README/docs/CI now describe and validate the cold-start scaffold, control deck, package products, and privacy/diagnostics path.
 - 2026-06-30 18:05 Unit 2c complete: docs validator, scaffold selftest, shell-doctor selftest, and disposable fixture inspection pass; no generated package noise tracked.
 - 2026-06-30 18:12 Unit 3 complete: shell boundary, docs validator, strict tests, UI probe, coverage, scaffold/doctor selftests, and downstream MD/Workbench checks pass; shell-doctor strict adoption is opt-in for new apps.
+- 2026-06-30 18:15 Final review pass complete: diff checked for strict-adoption boundary, downstream compatibility, docs/CI wiring, and generated-noise risk; no blocker findings.

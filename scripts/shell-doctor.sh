@@ -45,7 +45,7 @@ import sys
 
 repo = pathlib.Path(sys.argv[1]).resolve()
 consumer = sys.argv[2] or repo.name
-strict_adoption = sys.argv[3] == "true"
+strict_adoption = sys.argv[3].lower() in {"1", "true", "yes"}
 shell_url = "https://github.com/ourostack/ouro-native-apple-app-shell.git"
 assignment_pattern = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 issues = []

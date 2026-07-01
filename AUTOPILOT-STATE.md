@@ -5,12 +5,12 @@
 - Branch: `worker/third-app-trial-shell-polish`
 - Worktree: `/Users/arimendelow/Projects/ouro-native-apple-app-shell-worker-third-app`
 - Planning doc: `worker/tasks/2026-06-30-1750-planning-third-app-trial-shell-polish.md`
-- Current phase: planning reviewer gate
-- Next action: review planning for scope/template/source fidelity, then convert to doing doc and execute.
+- Current phase: PR/merge
+- Next action: open PR, wait for CI, merge, verify main, and clean up the dedicated worktree/branch.
 
 ## Terminal Evidence
 
-- Not terminal yet.
+- Local validation passed before PR: shell boundary selftest, adoption docs validator, shell doctor selftest, scaffold selftest, strict Swift tests, UI surface probe, coverage, and downstream checks for Ouro MD and Ouro Workbench.
 
 ## Continuation Scan
 
