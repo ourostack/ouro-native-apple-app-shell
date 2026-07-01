@@ -102,6 +102,7 @@ contract_type = f"{module}ShellContract"
 package_name = args.package_name
 archive_prefix = re.sub(r"[^A-Za-z0-9]+", "", args.app_name) or module
 repo_url = f"https://github.com/{args.repository}"
+privacy_url = f"{repo_url}/blob/main/PRIVACY.md"
 shell_path = pathlib.Path(args.shell_path).expanduser().resolve()
 local_boundary_checker = str(shell_path / "scripts" / "check-shell-boundary.sh") if args.dependency_mode == "local" else ""
 
@@ -215,7 +216,28 @@ write(
                     OuroAppShellUtilityWindowContract(id: "about", surface: .about, title: {swift_string("About " + args.app_name)}),
                     OuroAppShellUtilityWindowContract(id: "shortcuts", surface: .keyboardShortcuts, title: "Keyboard Shortcuts"),
                 ],
-                settings: OuroAppShellSettingsContract(entryPoint: {swift_string(args.app_name + " > Settings")})
+                settings: OuroAppShellSettingsContract(
+                    entryPoint: {swift_string(args.app_name + " > Settings")},
+                    sharedSections: [
+                        .updates(entryPoint: {swift_string(args.app_name + " > Settings > Updates")}),
+                        .privacy(entryPoint: {swift_string(args.app_name + " > Settings > Privacy")}),
+                    ],
+                    appOwnedSections: ["General"]
+                ),
+                privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract(
+                    telemetryConsentEntryPoint: {swift_string(args.app_name + " > Settings > Privacy")},
+                    privacyDocumentURL: URL(string: {swift_string(privacy_url)})!,
+                    diagnosticsExportDisclosure: "Diagnostics export creates a support bundle with app logs and shell adoption metadata.",
+                    supportBundleContents: [
+                        "Application logs",
+                        "Shell contract manifest",
+                        "Update channel metadata",
+                    ],
+                    redactionGuarantees: [
+                        "User document contents are excluded by default",
+                        "Access tokens and credentials are redacted",
+                    ]
+                )
             )
         }}
     }}
@@ -243,6 +265,40 @@ write(
 )
 
 write(output / "scripts" / "shell-boundary-allowlist.txt", "# path\tpattern\treason\n")
+
+control_deck = {
+    "schema_version": 1,
+    "app": {
+        "name": args.app_name,
+        "bundle_identifier": args.bundle_id,
+        "repository": args.repository,
+    },
+    "local_manifest": "config/ouro-app-control-deck.json",
+    "shell_package": {
+        "identity": "ouro-native-apple-app-shell",
+        "products": [
+            "OuroAppShellCore",
+            "OuroAppShellContract",
+            "OuroAppShellConsumerTesting",
+        ],
+    },
+    "adoption_surfaces": [
+        "appIdentity",
+        "releaseUpdates",
+        "about",
+        "keyboardShortcuts",
+        "settings",
+        "windowChrome",
+        "telemetry",
+    ],
+    "validation": [
+        "scripts/check-shell-dependency.sh",
+        "scripts/check-shell-boundary.sh --selftest",
+        "scripts/check-shell-boundary.sh",
+        "swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete",
+    ],
+}
+write(output / "config" / "ouro-app-control-deck.json", json.dumps(control_deck, indent=2) + "\n")
 
 write(
     output / "scripts" / "check-shell-boundary.sh",
@@ -431,6 +487,8 @@ write(
     - `Package.swift` depends on `ouro-native-apple-app-shell`.
     - `Sources/{module}/{contract_type}.swift` declares a typed `OuroAppShellContract`.
     - `Tests/{module}Tests/{contract_type}Tests.swift` asserts the contract with `OuroAppShellConsumerTesting`.
+    - `config/ouro-app-control-deck.json` records the local shell adoption manifest.
+    - Privacy/diagnostics descriptors declare consent, privacy document, support bundle, and redaction expectations.
     - `scripts/check-shell-dependency.sh` guards the dependency shape.
     - `scripts/check-shell-boundary.sh` delegates to the shell-owned scanner.
     - `scripts/preflight.sh` runs shell dependency and boundary checks before other gates.
@@ -482,7 +540,11 @@ selftest() {
   fi
   grep -Fq "refusing to overwrite existing output without --force" "$overwrite_err" || fail "selftest did not report overwrite refusal"
 
-  OURO_APP_SHELL_ROOT="$ROOT" "$ROOT/scripts/shell-doctor.sh" --repo "$fixture" --consumer fake-consumer
+  grep -Fq "privacyDiagnostics:" "$fixture/Sources/FakeApp/FakeAppShellContract.swift" || fail "fixture contract must declare privacy diagnostics"
+  test -f "$fixture/config/ouro-app-control-deck.json" || fail "fixture must include config/ouro-app-control-deck.json"
+  grep -Fq '"local_manifest": "config/ouro-app-control-deck.json"' "$fixture/config/ouro-app-control-deck.json" || fail "fixture control deck must declare local manifest path"
+
+  OURO_APP_SHELL_ROOT="$ROOT" "$ROOT/scripts/shell-doctor.sh" --repo "$fixture" --consumer fake-consumer --strict-adoption
   "$fixture/scripts/preflight.sh"
 
   "$0" \

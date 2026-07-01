@@ -31,6 +31,8 @@ jobs:
         run: scripts/shell-doctor.sh --selftest
       - name: Run consumer scaffold selftest
         run: scripts/scaffold-consumer-adoption.sh --selftest
+      - name: Validate adoption docs
+        run: scripts/validate-adoption-docs.py
       - name: Run strict tests
         run: swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete
       - name: Run UI surface probe

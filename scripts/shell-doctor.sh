@@ -9,15 +9,18 @@ REPO=""
 CONSUMER=""
 ALLOWLIST=""
 SELFTEST_TMP=""
+STRICT_ADOPTION="${OURO_APP_SHELL_DOCTOR_STRICT_ADOPTION:-false}"
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: shell-doctor.sh --repo PATH [--consumer NAME] [--allowlist FILE] [--selftest]
+Usage: shell-doctor.sh --repo PATH [--consumer NAME] [--allowlist FILE] [--strict-adoption] [--selftest]
 
 Checks a consumer repository for the shared Ouro native app-shell adoption path:
 SwiftPM dependency/products, typed shell contract source, consumer contract
 tests, shell dependency/boundary scripts in preflight, and the shell boundary
 scanner itself.
+Use --strict-adoption for new-app/scaffold validation that must include
+privacy/diagnostics descriptors and config/ouro-app-control-deck.json.
 USAGE
 }
 
@@ -29,8 +32,9 @@ fail() {
 run_static_checks() {
   local repo="$1"
   local consumer="$2"
+  local strict_adoption="$3"
 
-  python3 - "$repo" "$consumer" <<'PY'
+  python3 - "$repo" "$consumer" "$strict_adoption" <<'PY'
 import json
 import os
 import pathlib
@@ -41,6 +45,7 @@ import sys
 
 repo = pathlib.Path(sys.argv[1]).resolve()
 consumer = sys.argv[2] or repo.name
+strict_adoption = sys.argv[3].lower() in {"1", "true", "yes"}
 shell_url = "https://github.com/ourostack/ouro-native-apple-app-shell.git"
 assignment_pattern = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 issues = []
@@ -415,6 +420,11 @@ required_contract_tokens = [
     "utilityWindows:",
     "OuroAppShellSettingsContract",
 ]
+if strict_adoption:
+    required_contract_tokens.extend([
+        "privacyDiagnostics:",
+        "OuroAppShellPrivacyDiagnosticsContract",
+    ])
 contract_text = "\n".join(text for _, text in contract_sources)
 for token in required_contract_tokens:
     if token in contract_text:
@@ -436,6 +446,34 @@ if "OuroAppShellContractAssertions.assertRequiresShellFirstSurfaces" in test_tex
     add_check("Tests assert the shell-first surface list")
 else:
     add_issue("consumer tests must call OuroAppShellContractAssertions.assertRequiresShellFirstSurfaces")
+
+control_deck_path = repo / "config" / "ouro-app-control-deck.json"
+control_deck = ""
+if control_deck_path.exists():
+    control_deck = control_deck_path.read_text(encoding="utf-8")
+elif strict_adoption:
+    add_issue("missing config/ouro-app-control-deck.json")
+else:
+    notes.append("control deck check skipped; run --strict-adoption for new-app scaffold validation")
+if control_deck:
+    try:
+        control_data = json.loads(control_deck)
+    except json.JSONDecodeError as exc:
+        add_issue(f"config/ouro-app-control-deck.json must be valid JSON: {exc}")
+    else:
+        if control_data.get("schema_version") != 1:
+            add_issue("config/ouro-app-control-deck.json must set schema_version to 1")
+        else:
+            add_check("control deck schema_version is 1")
+        if control_data.get("local_manifest") != "config/ouro-app-control-deck.json":
+            add_issue("control deck must declare local_manifest as config/ouro-app-control-deck.json")
+        else:
+            add_check("control deck declares its local manifest path")
+        surfaces = control_data.get("adoption_surfaces")
+        if not isinstance(surfaces, list) or not surfaces:
+            add_issue("control deck must list adoption_surfaces")
+        else:
+            add_check("control deck lists adoption surfaces")
 
 boundary_wrapper = repo / "scripts" / "check-shell-boundary.sh"
 if boundary_wrapper.exists():
@@ -575,7 +613,7 @@ run_doctor() {
   repo="$(cd "$repo" && pwd)"
   [ -n "$consumer" ] || consumer="$(basename "$repo")"
 
-  run_static_checks "$repo" "$consumer" || return 1
+  run_static_checks "$repo" "$consumer" "$STRICT_ADOPTION" || return 1
   run_boundary_wrapper_selftest "$repo" || return 1
   run_boundary_wrapper_scan "$repo" || return 1
   run_boundary_scan "$repo" "$allowlist" || return 1
@@ -584,13 +622,14 @@ run_doctor() {
 
 run_selftest() {
   local tmp valid invalid
+  STRICT_ADOPTION=true
   tmp="$(mktemp -d)"
   SELFTEST_TMP="$tmp"
   trap 'rm -rf "$SELFTEST_TMP"' EXIT
   valid="$tmp/valid-consumer"
   invalid="$tmp/invalid-consumer"
 
-  mkdir -p "$valid/Sources/FakeApp" "$valid/Tests/FakeAppTests" "$valid/scripts"
+  mkdir -p "$valid/Sources/FakeApp" "$valid/Tests/FakeAppTests" "$valid/scripts" "$valid/config"
   cat >"$valid/Package.swift" <<'EOF'
 // swift-tools-version: 6.0
 import PackageDescription
@@ -649,9 +688,31 @@ enum FakeShellContract {
             commandReference: OuroAppShellCommandReferenceContract(title: "Keyboard Shortcuts", commandCount: 1, sections: ["Global"], entryPoint: "Help > Keyboard Shortcuts"),
             commandManifest: OuroAppShellCommandSurfaceManifest(commands: [.init(id: "global.shortcuts", title: "Keyboard Shortcuts", section: "Global", shortcut: "⌘/")]),
             utilityWindows: [.init(id: "about", surface: .about, title: "About Fake")],
-            settings: OuroAppShellSettingsContract(entryPoint: "Fake > Settings")
+            settings: OuroAppShellSettingsContract(entryPoint: "Fake > Settings"),
+            privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract(
+                telemetryConsentEntryPoint: "Fake > Settings > Privacy",
+                privacyDocumentURL: URL(string: "https://github.com/ourostack/fake/blob/main/PRIVACY.md")!,
+                diagnosticsExportDisclosure: "Diagnostics export creates a support bundle.",
+                supportBundleContents: ["Application logs", "Shell contract manifest"],
+                redactionGuarantees: ["User content excluded by default", "Credentials redacted"]
+            )
         )
     }
+}
+EOF
+  cat >"$valid/config/ouro-app-control-deck.json" <<'EOF'
+{
+  "schema_version": 1,
+  "local_manifest": "config/ouro-app-control-deck.json",
+  "adoption_surfaces": [
+    "appIdentity",
+    "releaseUpdates",
+    "about",
+    "keyboardShortcuts",
+    "settings",
+    "windowChrome",
+    "telemetry"
+  ]
 }
 EOF
   cat >"$valid/Tests/FakeAppTests/FakeShellContractTests.swift" <<'EOF'
@@ -1139,6 +1200,10 @@ while [ "$#" -gt 0 ]; do
       [ "$#" -ge 2 ] || fail "--allowlist requires a file"
       ALLOWLIST="$2"
       shift 2
+      ;;
+    --strict-adoption)
+      STRICT_ADOPTION=true
+      shift
       ;;
     --selftest)
       run_selftest

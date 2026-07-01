@@ -22,7 +22,7 @@ Ouro MD, Ouro Workbench, and future native Ouro apps.
 `OuroAppShellContract` is the shared declaration surface for native app-shell
 adoption. Consuming apps declare identity, required shell-first surfaces, and
 the app-provided descriptors for release updates, About, command reference,
-command manifests, utility windows, and settings.
+command manifests, utility windows, settings, and privacy/diagnostics.
 
 `OuroAppShellConsumerTesting` is the XCTest helper product. Consumers should add
 a small contract test beside their shell adapter so CI fails when an app adds a
@@ -41,9 +41,10 @@ scripts/shell-doctor.sh --repo /path/to/ouro-workbench
 `scripts/scaffold-consumer-adoption.sh` is the executable starting point for a
 new consumer. It generates a tiny Swift package fixture with the Package.swift
 dependency, `OuroAppShellContract` declaration, `OuroAppShellConsumerTesting`
-test, dependency guard, boundary wrapper, allowlist file, and preflight ordering
-that the doctor expects. Start there when adding another native Ouro app, then
-port the generated shape into the real app's shell adapter.
+test, privacy/diagnostics descriptors, `config/ouro-app-control-deck.json`,
+dependency guard, boundary wrapper, allowlist file, and preflight ordering that
+the doctor expects. Start there when adding another native Ouro app, then port
+the generated shape into the real app's shell adapter.
 
 Shell CI also runs the doctor inside `scripts/check-downstream-consumers.sh`
 after overriding each consumer to the local shell checkout, so a shell PR cannot
