@@ -614,7 +614,7 @@ run_selftest() {
   valid="$tmp/valid-consumer"
   invalid="$tmp/invalid-consumer"
 
-  mkdir -p "$valid/Sources/FakeApp" "$valid/Tests/FakeAppTests" "$valid/scripts"
+  mkdir -p "$valid/Sources/FakeApp" "$valid/Tests/FakeAppTests" "$valid/scripts" "$valid/config"
   cat >"$valid/Package.swift" <<'EOF'
 // swift-tools-version: 6.0
 import PackageDescription
@@ -673,9 +673,31 @@ enum FakeShellContract {
             commandReference: OuroAppShellCommandReferenceContract(title: "Keyboard Shortcuts", commandCount: 1, sections: ["Global"], entryPoint: "Help > Keyboard Shortcuts"),
             commandManifest: OuroAppShellCommandSurfaceManifest(commands: [.init(id: "global.shortcuts", title: "Keyboard Shortcuts", section: "Global", shortcut: "⌘/")]),
             utilityWindows: [.init(id: "about", surface: .about, title: "About Fake")],
-            settings: OuroAppShellSettingsContract(entryPoint: "Fake > Settings")
+            settings: OuroAppShellSettingsContract(entryPoint: "Fake > Settings"),
+            privacyDiagnostics: OuroAppShellPrivacyDiagnosticsContract(
+                telemetryConsentEntryPoint: "Fake > Settings > Privacy",
+                privacyDocumentURL: URL(string: "https://github.com/ourostack/fake/blob/main/PRIVACY.md")!,
+                diagnosticsExportDisclosure: "Diagnostics export creates a support bundle.",
+                supportBundleContents: ["Application logs", "Shell contract manifest"],
+                redactionGuarantees: ["User content excluded by default", "Credentials redacted"]
+            )
         )
     }
+}
+EOF
+  cat >"$valid/config/ouro-app-control-deck.json" <<'EOF'
+{
+  "schema_version": 1,
+  "local_manifest": "config/ouro-app-control-deck.json",
+  "adoption_surfaces": [
+    "appIdentity",
+    "releaseUpdates",
+    "about",
+    "keyboardShortcuts",
+    "settings",
+    "windowChrome",
+    "telemetry"
+  ]
 }
 EOF
   cat >"$valid/Tests/FakeAppTests/FakeShellContractTests.swift" <<'EOF'
