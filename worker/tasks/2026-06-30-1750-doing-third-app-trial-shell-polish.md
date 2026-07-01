@@ -52,7 +52,7 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 
 **CRITICAL: Every unit header MUST start with status emoji (⬜ for new units).**
 
-### ⬜ Unit 0: Setup/Research
+### ✅ Unit 0: Setup/Research
 **What**: Capture current scaffold, shell-doctor, docs, package, and downstream validation shape; create artifacts directory.
 **Output**: Notes in `./2026-06-30-1750-doing-third-app-trial-shell-polish/`.
 **Acceptance**: Current commands and source targets are known before edits.
@@ -108,3 +108,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 
 ## Progress Log
 - 2026-06-30 17:50 Created from planning doc
+- 2026-06-30 17:50 Unit 0 complete: captured scaffold, doctor, docs, control-deck, and validation terrain before edits.
