@@ -27,14 +27,14 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - Broad Ouro MD or Ouro Workbench refactors beyond validation and compatibility fixes directly required by this shell change.
 
 ## Completion Criteria
-- [ ] A generated third-app fixture exercises shell contract descriptors for package products, identity, release/update policy, About, command manifest/reference parity, settings, utility windows, privacy/diagnostics, dependency guard, boundary wrapper, and preflight ordering.
-- [ ] The scaffold selftest and shell doctor validate that fixture without relying on repo-memory or a real third GitHub repo.
-- [ ] README/docs/control-deck guidance describes the adoption path and validation commands from a cold start.
-- [ ] Shell validation passes: `scripts/check-shell-boundary.sh --selftest`, `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`, `scripts/ui-surface-probe.sh`, and `scripts/check-coverage.sh`.
-- [ ] Relevant downstream checks pass for `ouro-md` and `ouro-workbench` or any residual blocker is classified as a true hard exception with evidence.
-- [ ] 100% test coverage on all new code
-- [ ] All tests pass
-- [ ] No warnings
+- [x] A generated third-app fixture exercises shell contract descriptors for package products, identity, release/update policy, About, command manifest/reference parity, settings, utility windows, privacy/diagnostics, dependency guard, boundary wrapper, and preflight ordering.
+- [x] The scaffold selftest and shell doctor validate that fixture without relying on repo-memory or a real third GitHub repo.
+- [x] README/docs/control-deck guidance describes the adoption path and validation commands from a cold start.
+- [x] Shell validation passes: `scripts/check-shell-boundary.sh --selftest`, `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`, `scripts/ui-surface-probe.sh`, and `scripts/check-coverage.sh`.
+- [x] Relevant downstream checks pass for `ouro-md` and `ouro-workbench` or any residual blocker is classified as a true hard exception with evidence.
+- [x] 100% test coverage on all new code
+- [x] All tests pass
+- [x] No warnings
 
 ## Code Coverage Requirements
 **MANDATORY: 100% coverage on all new code.**
@@ -71,3 +71,4 @@ Reviewer gate: external reviewer tool returned an empty response, so it was not 
 ## Progress Log
 - 2026-06-30 17:50 Created
 - 2026-06-30 17:50 Approved after reviewer-gated source-fidelity pass
+- 2026-06-30 18:20 Completed via PR #33 merge `5056ca3`; completion criteria synced from final validation evidence.
