@@ -1,8 +1,0 @@
-Adoption docs validation failed:
-  - README.md: missing 'config/ouro-app-control-deck.json'
-  - README.md: missing 'privacy/diagnostics descriptors'
-  - docs/INDEX.md: missing 'Privacy And Diagnostics Contract'
-  - docs/INDEX.md: missing 'Third-app adoption quick start'
-  - docs/INDEX.md: missing 'config/ouro-app-control-deck.json'
-  - docs/shell-boundary.md: missing 'privacy/diagnostics'
-  - docs/privacy-diagnostics-contract.md: missing 'scripts/scaffold-consumer-adoption.sh'
