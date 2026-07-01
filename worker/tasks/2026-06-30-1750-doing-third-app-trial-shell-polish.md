@@ -1,6 +1,6 @@
 # Doing: Third-App Trial And Shell Package Polish
 
-**Status**: READY_FOR_EXECUTION
+**Status**: done
 **Execution Mode**: direct
 **Created**: 2026-06-30 17:50
 **Planning**: ./2026-06-30-1750-planning-third-app-trial-shell-polish.md
@@ -20,14 +20,14 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - `/Users/arimendelow/desk/ouro-md/native-app-shell-next-roadmap/task.md` R2: Shell Package Polish
 
 ## Completion Criteria
-- [ ] A generated third-app fixture exercises shell contract descriptors for package products, identity, release/update policy, About, command manifest/reference parity, settings, utility windows, privacy/diagnostics, dependency guard, boundary wrapper, and preflight ordering.
-- [ ] The scaffold selftest and shell doctor validate that fixture without relying on repo-memory or a real third GitHub repo.
-- [ ] README/docs/control-deck guidance describes the adoption path and validation commands from a cold start.
-- [ ] Shell validation passes: `scripts/check-shell-boundary.sh --selftest`, `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`, `scripts/ui-surface-probe.sh`, and `scripts/check-coverage.sh`.
-- [ ] Relevant downstream checks pass for `ouro-md` and `ouro-workbench` or any residual blocker is classified as a true hard exception with evidence.
-- [ ] 100% test coverage on all new code
-- [ ] All tests pass
-- [ ] No warnings
+- [x] A generated third-app fixture exercises shell contract descriptors for package products, identity, release/update policy, About, command manifest/reference parity, settings, utility windows, privacy/diagnostics, dependency guard, boundary wrapper, and preflight ordering.
+- [x] The scaffold selftest and shell doctor validate that fixture without relying on repo-memory or a real third GitHub repo.
+- [x] README/docs/control-deck guidance describes the adoption path and validation commands from a cold start.
+- [x] Shell validation passes: `scripts/check-shell-boundary.sh --selftest`, `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`, `scripts/ui-surface-probe.sh`, and `scripts/check-coverage.sh`.
+- [x] Relevant downstream checks pass for `ouro-md` and `ouro-workbench` or any residual blocker is classified as a true hard exception with evidence.
+- [x] 100% test coverage on all new code
+- [x] All tests pass
+- [x] No warnings
 
 ## Code Coverage Requirements
 **MANDATORY: 100% coverage on all new code.**
@@ -92,7 +92,7 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 **Output**: Logs in artifacts.
 **Acceptance**: `scripts/check-shell-boundary.sh --selftest`, `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`, `scripts/ui-surface-probe.sh`, `scripts/check-coverage.sh`, and `scripts/check-downstream-consumers.sh --consumer ouro-md/--consumer ouro-workbench` pass or any residual is classified with hard-exception evidence.
 
-### ⬜ Unit 4: Final Review, PR, Merge, Cleanup
+### ✅ Unit 4: Final Review, PR, Merge, Cleanup
 **What**: Run final self-review/reviewer gate, push branch, open PR, wait for CI, merge, verify main, and remove the dedicated worktree/branch if terminal.
 **Output**: Merged PR and cleanup evidence.
 **Acceptance**: PR merged to `main`, CI green or non-applicable with evidence, local validation recorded, no stale worktree/branch from this run remains, no generated `Packages` noise is tracked.
@@ -117,3 +117,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - 2026-06-30 18:05 Unit 2c complete: docs validator, scaffold selftest, shell-doctor selftest, and disposable fixture inspection pass; no generated package noise tracked.
 - 2026-06-30 18:12 Unit 3 complete: shell boundary, docs validator, strict tests, UI probe, coverage, scaffold/doctor selftests, and downstream MD/Workbench checks pass; shell-doctor strict adoption is opt-in for new apps.
 - 2026-06-30 18:15 Final review pass complete: diff checked for strict-adoption boundary, downstream compatibility, docs/CI wiring, and generated-noise risk; no blocker findings.
+- 2026-06-30 18:20 Unit 4 complete: PR #33 merged at `5056ca3`, CI green, remote feature branch deleted, implementation worktree removed, and primary checkout fast-forwarded to merged main.
