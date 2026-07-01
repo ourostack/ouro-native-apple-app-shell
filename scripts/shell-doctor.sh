@@ -414,6 +414,8 @@ required_contract_tokens = [
     "OuroAppShellCommandReferenceContract",
     "utilityWindows:",
     "OuroAppShellSettingsContract",
+    "privacyDiagnostics:",
+    "OuroAppShellPrivacyDiagnosticsContract",
 ]
 contract_text = "\n".join(text for _, text in contract_sources)
 for token in required_contract_tokens:
@@ -436,6 +438,28 @@ if "OuroAppShellContractAssertions.assertRequiresShellFirstSurfaces" in test_tex
     add_check("Tests assert the shell-first surface list")
 else:
     add_issue("consumer tests must call OuroAppShellContractAssertions.assertRequiresShellFirstSurfaces")
+
+control_deck_path = repo / "config" / "ouro-app-control-deck.json"
+control_deck = read(control_deck_path)
+if control_deck:
+    try:
+        control_data = json.loads(control_deck)
+    except json.JSONDecodeError as exc:
+        add_issue(f"config/ouro-app-control-deck.json must be valid JSON: {exc}")
+    else:
+        if control_data.get("schema_version") != 1:
+            add_issue("config/ouro-app-control-deck.json must set schema_version to 1")
+        else:
+            add_check("control deck schema_version is 1")
+        if control_data.get("local_manifest") != "config/ouro-app-control-deck.json":
+            add_issue("control deck must declare local_manifest as config/ouro-app-control-deck.json")
+        else:
+            add_check("control deck declares its local manifest path")
+        surfaces = control_data.get("adoption_surfaces")
+        if not isinstance(surfaces, list) or not surfaces:
+            add_issue("control deck must list adoption_surfaces")
+        else:
+            add_check("control deck lists adoption surfaces")
 
 boundary_wrapper = repo / "scripts" / "check-shell-boundary.sh"
 if boundary_wrapper.exists():

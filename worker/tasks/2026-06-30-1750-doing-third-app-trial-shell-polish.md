@@ -57,7 +57,7 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 **Output**: Notes in `./2026-06-30-1750-doing-third-app-trial-shell-polish/`.
 **Acceptance**: Current commands and source targets are known before edits.
 
-### ⬜ Unit 1a: Third-App Scaffold Contract — Tests
+### ✅ Unit 1a: Third-App Scaffold Contract — Tests
 **What**: Add failing selftest assertions to `scripts/scaffold-consumer-adoption.sh` and/or `scripts/shell-doctor.sh` proving the generated fixture includes privacy/diagnostics descriptors and an app-local control deck artifact.
 **Output**: Test/script changes only.
 **Acceptance**: `scripts/scaffold-consumer-adoption.sh --selftest` fails for missing descriptor/control-deck coverage before implementation.
@@ -109,3 +109,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 ## Progress Log
 - 2026-06-30 17:50 Created from planning doc
 - 2026-06-30 17:50 Unit 0 complete: captured scaffold, doctor, docs, control-deck, and validation terrain before edits.
+- 2026-06-30 17:50 Unit 1a complete: added red scaffold/doctor assertions for privacy diagnostics and control-deck fixture coverage; red log shows missing privacy diagnostics.
