@@ -32,8 +32,10 @@ consumer-specific task artifacts.
    `scripts/preflight.sh`, and `config/ouro-app-control-deck.json`.
 3. Move that shape into the real app's shell adapter and CI without adding
    product-specific UI to this shell package.
-4. Validate the consumer with `scripts/shell-doctor.sh --repo /path/to/app`
-   from this repo.
+4. Validate the consumer with
+   `scripts/shell-doctor.sh --repo /path/to/app --strict-adoption` from this
+   repo while adopting the generated shape. Existing pinned consumers can run
+   the doctor without strict mode until their app-local control deck lands.
 
 ## Executable Validation References
 

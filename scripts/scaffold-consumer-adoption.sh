@@ -544,7 +544,7 @@ selftest() {
   test -f "$fixture/config/ouro-app-control-deck.json" || fail "fixture must include config/ouro-app-control-deck.json"
   grep -Fq '"local_manifest": "config/ouro-app-control-deck.json"' "$fixture/config/ouro-app-control-deck.json" || fail "fixture control deck must declare local manifest path"
 
-  OURO_APP_SHELL_ROOT="$ROOT" "$ROOT/scripts/shell-doctor.sh" --repo "$fixture" --consumer fake-consumer
+  OURO_APP_SHELL_ROOT="$ROOT" "$ROOT/scripts/shell-doctor.sh" --repo "$fixture" --consumer fake-consumer --strict-adoption
   "$fixture/scripts/preflight.sh"
 
   "$0" \

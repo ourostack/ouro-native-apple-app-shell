@@ -55,7 +55,8 @@ The shell doctor is the executable adoption checklist for downstream apps. Run
 `scripts/shell-doctor.sh --repo /path/to/consumer` to verify that a consumer has
 the SwiftPM products, typed shell contract, consumer contract tests, dependency
 freshness guard, boundary wrapper, and preflight wiring expected by shared shell
-CI.
+CI. For a new app or generated fixture, add `--strict-adoption` to also require
+privacy/diagnostics descriptors and `config/ouro-app-control-deck.json`.
 
 The consumer scaffold is the executable reference shape for a new native app.
 Run `scripts/scaffold-consumer-adoption.sh --output /tmp/ouro-shell-fixture

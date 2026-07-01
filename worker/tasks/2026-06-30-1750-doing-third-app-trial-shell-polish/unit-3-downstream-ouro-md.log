@@ -1,0 +1,137 @@
+
+Consumer contract: ouro-md
+  repository: https://github.com/ourostack/ouro-md.git
+  mode: pinned
+  ref: 97681aa703d364abb090b1f42228d4e1ea34e8ce
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md init
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-1-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-init.log
+Initialized empty Git repository in /private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md/.git/
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md remote add origin https://github.com/ourostack/ouro-md.git
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-2-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-remote-add-origin-https-gith.log
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md fetch --depth 1 origin 97681aa703d364abb090b1f42228d4e1ea34e8ce
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-3-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-fetch-depth-1-origin-97681aa.log
+From https://github.com/ourostack/ouro-md
+ * branch            97681aa703d364abb090b1f42228d4e1ea34e8ce -> FETCH_HEAD
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md checkout --detach FETCH_HEAD
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-4-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-checkout-detach-FETCH_HEAD.log
+HEAD is now at 97681aa Add release API fallback to release policy
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md reset --hard FETCH_HEAD
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-5-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-reset-hard-FETCH_HEAD.log
+HEAD is now at 97681aa Add release API fallback to release policy
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md clean -fdx
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-6-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-clean-fdx.log
+  resolved: 97681aa703d364abb090b1f42228d4e1ea34e8ce
+
+==> swift package --package-path /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md resolve
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-7-swift-package-package-path-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-resolve.log
+Fetching https://github.com/apple/swift-markdown.git from cache
+Fetched https://github.com/apple/swift-markdown.git from cache (0.44s)
+Fetching https://github.com/swiftlang/swift-cmark.git from cache
+Fetched https://github.com/swiftlang/swift-cmark.git from cache (0.51s)
+Fetching https://github.com/ourostack/ouro-native-apple-app-shell.git from cache
+Creating working copy for https://github.com/apple/swift-markdown.git
+Working copy of https://github.com/apple/swift-markdown.git resolved at main (4661b55)
+Creating working copy for https://github.com/swiftlang/swift-cmark.git
+Fetched https://github.com/ourostack/ouro-native-apple-app-shell.git from cache (0.76s)
+Working copy of https://github.com/swiftlang/swift-cmark.git resolved at gfm (0101bf2)
+
+==> bash -c swift package --package-path "$1" show-dependencies | grep -Fq "$2" _ /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md /Users/arimendelow/Projects/ouro-native-apple-app-shell-worker-third-app
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-8-bash-c-swift-package-package-path-1-show-dependencies-grep-Fq-2-_-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000g.log
+
+==> /Users/arimendelow/Projects/ouro-native-apple-app-shell-worker-third-app/scripts/shell-doctor.sh --repo /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md --consumer ouro-md
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-9-Users-arimendelow-Projects-ouro-native-apple-app-shell-worker-third-app-scripts-shell-doctor.sh-repo-var-folde.log
+Shell doctor found adoption issues in ouro-md (/private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md):
+  - consumer shell contract must include privacyDiagnostics:
+  - consumer shell contract must include OuroAppShellPrivacyDiagnosticsContract
+  - missing config/ouro-app-control-deck.json
+
+Checks already satisfied:
+  - Package.swift declares ouro-native-apple-app-shell dependency
+  - Package.swift exposes OuroAppShellContract to a target
+  - Package.swift exposes OuroAppShellConsumerTesting to a target
+  - Sources declare a typed OuroAppShellContract
+  - contract source includes requiredSurfaces
+  - contract source includes OuroAppShellReleaseUpdateContract
+  - contract source includes OuroAppShellAboutContract
+  - contract source includes OuroAppShellCommandReferenceContract
+  - contract source includes utilityWindows:
+  - contract source includes OuroAppShellSettingsContract
+  - Tests import OuroAppShellConsumerTesting
+  - Tests assert the shell contract is valid
+  - Tests assert the shell-first surface list
+  - scripts/check-shell-boundary.sh is executable
+  - boundary wrapper delegates to the shell scanner with --repo
+  - scripts/check-shell-boundary.sh uses fail-fast shell mode
+  - scripts/check-shell-dependency.sh is executable
+  - scripts/pr-preflight.sh is executable
+  - scripts/pr-preflight.sh uses fail-fast shell mode
+  - scripts/pr-preflight.sh includes shell dependency freshness
+  - scripts/pr-preflight.sh includes shell boundary selftest
+  - scripts/pr-preflight.sh includes shell boundary scan
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-1-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-init.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-1-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-init.log
+Initialized empty Git repository in /private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md/.git/
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-9-Users-arimendelow-Projects-ouro-native-apple-app-shell-worker-third-app-scripts-shell-doctor.sh-repo-var-folde.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-9-Users-arimendelow-Projects-ouro-native-apple-app-shell-worker-third-app-scripts-shell-doctor.sh-repo-var-folde.log
+Shell doctor found adoption issues in ouro-md (/private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/work/ouro-md):
+  - consumer shell contract must include privacyDiagnostics:
+  - consumer shell contract must include OuroAppShellPrivacyDiagnosticsContract
+  - missing config/ouro-app-control-deck.json
+
+Checks already satisfied:
+  - Package.swift declares ouro-native-apple-app-shell dependency
+  - Package.swift exposes OuroAppShellContract to a target
+  - Package.swift exposes OuroAppShellConsumerTesting to a target
+  - Sources declare a typed OuroAppShellContract
+  - contract source includes requiredSurfaces
+  - contract source includes OuroAppShellReleaseUpdateContract
+  - contract source includes OuroAppShellAboutContract
+  - contract source includes OuroAppShellCommandReferenceContract
+  - contract source includes utilityWindows:
+  - contract source includes OuroAppShellSettingsContract
+  - Tests import OuroAppShellConsumerTesting
+  - Tests assert the shell contract is valid
+  - Tests assert the shell-first surface list
+  - scripts/check-shell-boundary.sh is executable
+  - boundary wrapper delegates to the shell scanner with --repo
+  - scripts/check-shell-boundary.sh uses fail-fast shell mode
+  - scripts/check-shell-dependency.sh is executable
+  - scripts/pr-preflight.sh is executable
+  - scripts/pr-preflight.sh uses fail-fast shell mode
+  - scripts/pr-preflight.sh includes shell dependency freshness
+  - scripts/pr-preflight.sh includes shell boundary selftest
+  - scripts/pr-preflight.sh includes shell boundary scan
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-3-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-fetch-depth-1-origin-97681aa.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-3-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-fetch-depth-1-origin-97681aa.log
+From https://github.com/ourostack/ouro-md
+ * branch            97681aa703d364abb090b1f42228d4e1ea34e8ce -> FETCH_HEAD
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-6-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-clean-fdx.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-6-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-clean-fdx.log
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-4-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-checkout-detach-FETCH_HEAD.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-4-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-checkout-detach-FETCH_HEAD.log
+HEAD is now at 97681aa Add release API fallback to release policy
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-7-swift-package-package-path-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-resolve.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-7-swift-package-package-path-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-resolve.log
+Fetching https://github.com/apple/swift-markdown.git from cache
+Fetched https://github.com/apple/swift-markdown.git from cache (0.44s)
+Fetching https://github.com/swiftlang/swift-cmark.git from cache
+Fetched https://github.com/swiftlang/swift-cmark.git from cache (0.51s)
+Fetching https://github.com/ourostack/ouro-native-apple-app-shell.git from cache
+Creating working copy for https://github.com/apple/swift-markdown.git
+Working copy of https://github.com/apple/swift-markdown.git resolved at main (4661b55)
+Creating working copy for https://github.com/swiftlang/swift-cmark.git
+Fetched https://github.com/ourostack/ouro-native-apple-app-shell.git from cache (0.76s)
+Working copy of https://github.com/swiftlang/swift-cmark.git resolved at gfm (0101bf2)
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-5-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-reset-hard-FETCH_HEAD.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-5-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-reset-hard-FETCH_HEAD.log
+HEAD is now at 97681aa Add release API fallback to release policy
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-8-bash-c-swift-package-package-path-1-show-dependencies-grep-Fq-2-_-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000g.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-8-bash-c-swift-package-package-path-1-show-dependencies-grep-Fq-2-_-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000g.log
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-2-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-remote-add-origin-https-gith.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.4AFlOmoGBP/logs/ouro-md-2-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.4AFlOmoGBP-work-ouro-md-remote-add-origin-https-gith.log

@@ -1,0 +1,157 @@
+
+Consumer contract: ouro-workbench
+  repository: https://github.com/ourostack/ouro-workbench.git
+  mode: pinned
+  ref: 3c9ede6a8ed2d8d027c792a68daee695a1fc4f5b
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench init
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-1-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-init.log
+Initialized empty Git repository in /private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench/.git/
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench remote add origin https://github.com/ourostack/ouro-workbench.git
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-2-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-remote-add-ori.log
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench fetch --depth 1 origin 3c9ede6a8ed2d8d027c792a68daee695a1fc4f5b
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-3-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-fetch-depth-1-.log
+From https://github.com/ourostack/ouro-workbench
+ * branch            3c9ede6a8ed2d8d027c792a68daee695a1fc4f5b -> FETCH_HEAD
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench checkout --detach FETCH_HEAD
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-4-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-checkout-detac.log
+HEAD is now at 3c9ede6 test(bugreport): mutation-harden BugReport composer (pin the markdown document) (#413)
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench reset --hard FETCH_HEAD
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-5-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-reset-hard-FET.log
+HEAD is now at 3c9ede6 test(bugreport): mutation-harden BugReport composer (pin the markdown document) (#413)
+
+==> git -C /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench clean -fdx
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-6-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-clean-fdx.log
+  resolved: 3c9ede6a8ed2d8d027c792a68daee695a1fc4f5b
+
+==> swift package --package-path /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench resolve
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-7-swift-package-package-path-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-wor.log
+Fetching https://github.com/nalexn/ViewInspector.git from cache
+Fetching https://github.com/migueldeicaza/SwiftTerm.git from cache
+Fetching https://github.com/ourostack/ouro-native-apple-app-shell.git from cache
+Fetching https://github.com/apple/swift-argument-parser from cache
+Fetched https://github.com/apple/swift-argument-parser from cache (0.53s)
+Fetched https://github.com/nalexn/ViewInspector.git from cache (0.54s)
+Fetched https://github.com/migueldeicaza/SwiftTerm.git from cache (0.58s)
+Computing version for https://github.com/nalexn/ViewInspector.git
+Fetched https://github.com/ourostack/ouro-native-apple-app-shell.git from cache (0.83s)
+Computed https://github.com/nalexn/ViewInspector.git at 0.10.3 (1.03s)
+Computing version for https://github.com/migueldeicaza/SwiftTerm.git
+Computed https://github.com/migueldeicaza/SwiftTerm.git at 1.13.0 (0.64s)
+Computing version for https://github.com/apple/swift-argument-parser
+Computed https://github.com/apple/swift-argument-parser at 1.7.1 (0.48s)
+Creating working copy for https://github.com/migueldeicaza/SwiftTerm.git
+Working copy of https://github.com/migueldeicaza/SwiftTerm.git resolved at 1.13.0
+Creating working copy for https://github.com/apple/swift-argument-parser
+Working copy of https://github.com/apple/swift-argument-parser resolved at 1.7.1
+Creating working copy for https://github.com/nalexn/ViewInspector.git
+Working copy of https://github.com/nalexn/ViewInspector.git resolved at 0.10.3
+
+==> bash -c swift package --package-path "$1" show-dependencies | grep -Fq "$2" _ /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench /Users/arimendelow/Projects/ouro-native-apple-app-shell-worker-third-app
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-8-bash-c-swift-package-package-path-1-show-dependencies-grep-Fq-2-_-var-folders-md-_fkq3wc92_z55cgtlrfrcf.log
+
+==> /Users/arimendelow/Projects/ouro-native-apple-app-shell-worker-third-app/scripts/shell-doctor.sh --repo /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench --consumer ouro-workbench
+    log: /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-9-Users-arimendelow-Projects-ouro-native-apple-app-shell-worker-third-app-scripts-shell-doctor.sh-repo-va.log
+Shell doctor found adoption issues in ouro-workbench (/private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench):
+  - consumer shell contract must include privacyDiagnostics:
+  - consumer shell contract must include OuroAppShellPrivacyDiagnosticsContract
+  - missing config/ouro-app-control-deck.json
+
+Checks already satisfied:
+  - Package.swift declares ouro-native-apple-app-shell dependency
+  - Package.swift exposes OuroAppShellContract to a target
+  - Package.swift exposes OuroAppShellConsumerTesting to a target
+  - Sources declare a typed OuroAppShellContract
+  - contract source includes requiredSurfaces
+  - contract source includes OuroAppShellReleaseUpdateContract
+  - contract source includes OuroAppShellAboutContract
+  - contract source includes OuroAppShellCommandReferenceContract
+  - contract source includes utilityWindows:
+  - contract source includes OuroAppShellSettingsContract
+  - Tests import OuroAppShellConsumerTesting
+  - Tests assert the shell contract is valid
+  - Tests assert the shell-first surface list
+  - scripts/check-shell-boundary.sh is executable
+  - boundary wrapper delegates to the shell scanner with --repo
+  - scripts/check-shell-boundary.sh uses fail-fast shell mode
+  - scripts/check-shell-dependency.sh is executable
+  - scripts/preflight.sh is executable
+  - scripts/preflight.sh uses fail-fast shell mode
+  - scripts/preflight.sh includes shell dependency freshness
+  - scripts/preflight.sh includes shell boundary selftest
+  - scripts/preflight.sh includes shell boundary scan
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-5-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-reset-hard-FET.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-5-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-reset-hard-FET.log
+HEAD is now at 3c9ede6 test(bugreport): mutation-harden BugReport composer (pin the markdown document) (#413)
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-7-swift-package-package-path-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-wor.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-7-swift-package-package-path-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-wor.log
+Fetching https://github.com/nalexn/ViewInspector.git from cache
+Fetching https://github.com/migueldeicaza/SwiftTerm.git from cache
+Fetching https://github.com/ourostack/ouro-native-apple-app-shell.git from cache
+Fetching https://github.com/apple/swift-argument-parser from cache
+Fetched https://github.com/apple/swift-argument-parser from cache (0.53s)
+Fetched https://github.com/nalexn/ViewInspector.git from cache (0.54s)
+Fetched https://github.com/migueldeicaza/SwiftTerm.git from cache (0.58s)
+Computing version for https://github.com/nalexn/ViewInspector.git
+Fetched https://github.com/ourostack/ouro-native-apple-app-shell.git from cache (0.83s)
+Computed https://github.com/nalexn/ViewInspector.git at 0.10.3 (1.03s)
+Computing version for https://github.com/migueldeicaza/SwiftTerm.git
+Computed https://github.com/migueldeicaza/SwiftTerm.git at 1.13.0 (0.64s)
+Computing version for https://github.com/apple/swift-argument-parser
+Computed https://github.com/apple/swift-argument-parser at 1.7.1 (0.48s)
+Creating working copy for https://github.com/migueldeicaza/SwiftTerm.git
+Working copy of https://github.com/migueldeicaza/SwiftTerm.git resolved at 1.13.0
+Creating working copy for https://github.com/apple/swift-argument-parser
+Working copy of https://github.com/apple/swift-argument-parser resolved at 1.7.1
+Creating working copy for https://github.com/nalexn/ViewInspector.git
+Working copy of https://github.com/nalexn/ViewInspector.git resolved at 0.10.3
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-4-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-checkout-detac.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-4-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-checkout-detac.log
+HEAD is now at 3c9ede6 test(bugreport): mutation-harden BugReport composer (pin the markdown document) (#413)
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-3-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-fetch-depth-1-.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-3-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-fetch-depth-1-.log
+From https://github.com/ourostack/ouro-workbench
+ * branch            3c9ede6a8ed2d8d027c792a68daee695a1fc4f5b -> FETCH_HEAD
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-1-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-init.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-1-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-init.log
+Initialized empty Git repository in /private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench/.git/
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-8-bash-c-swift-package-package-path-1-show-dependencies-grep-Fq-2-_-var-folders-md-_fkq3wc92_z55cgtlrfrcf.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-8-bash-c-swift-package-package-path-1-show-dependencies-grep-Fq-2-_-var-folders-md-_fkq3wc92_z55cgtlrfrcf.log
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-9-Users-arimendelow-Projects-ouro-native-apple-app-shell-worker-third-app-scripts-shell-doctor.sh-repo-va.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-9-Users-arimendelow-Projects-ouro-native-apple-app-shell-worker-third-app-scripts-shell-doctor.sh-repo-va.log
+Shell doctor found adoption issues in ouro-workbench (/private/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/work/ouro-workbench):
+  - consumer shell contract must include privacyDiagnostics:
+  - consumer shell contract must include OuroAppShellPrivacyDiagnosticsContract
+  - missing config/ouro-app-control-deck.json
+
+Checks already satisfied:
+  - Package.swift declares ouro-native-apple-app-shell dependency
+  - Package.swift exposes OuroAppShellContract to a target
+  - Package.swift exposes OuroAppShellConsumerTesting to a target
+  - Sources declare a typed OuroAppShellContract
+  - contract source includes requiredSurfaces
+  - contract source includes OuroAppShellReleaseUpdateContract
+  - contract source includes OuroAppShellAboutContract
+  - contract source includes OuroAppShellCommandReferenceContract
+  - contract source includes utilityWindows:
+  - contract source includes OuroAppShellSettingsContract
+  - Tests import OuroAppShellConsumerTesting
+  - Tests assert the shell contract is valid
+  - Tests assert the shell-first surface list
+  - scripts/check-shell-boundary.sh is executable
+  - boundary wrapper delegates to the shell scanner with --repo
+  - scripts/check-shell-boundary.sh uses fail-fast shell mode
+  - scripts/check-shell-dependency.sh is executable
+  - scripts/preflight.sh is executable
+  - scripts/preflight.sh uses fail-fast shell mode
+  - scripts/preflight.sh includes shell dependency freshness
+  - scripts/preflight.sh includes shell boundary selftest
+  - scripts/preflight.sh includes shell boundary scan
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-6-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-clean-fdx.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-6-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-clean-fdx.log
+/var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-2-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-remote-add-ori.log
+===== /var/folders/md/_fkq3wc92_z55cgtlrfrcfh40000gn/T/tmp.oYo1vToJ6m/logs/ouro-workbench-2-git-C-var-folders-md-_fkq3wc92_z55cgtlrfrcfh40000gn-T-tmp.oYo1vToJ6m-work-ouro-workbench-remote-add-ori.log

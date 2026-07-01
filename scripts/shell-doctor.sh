@@ -9,15 +9,18 @@ REPO=""
 CONSUMER=""
 ALLOWLIST=""
 SELFTEST_TMP=""
+STRICT_ADOPTION="${OURO_APP_SHELL_DOCTOR_STRICT_ADOPTION:-false}"
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: shell-doctor.sh --repo PATH [--consumer NAME] [--allowlist FILE] [--selftest]
+Usage: shell-doctor.sh --repo PATH [--consumer NAME] [--allowlist FILE] [--strict-adoption] [--selftest]
 
 Checks a consumer repository for the shared Ouro native app-shell adoption path:
 SwiftPM dependency/products, typed shell contract source, consumer contract
 tests, shell dependency/boundary scripts in preflight, and the shell boundary
 scanner itself.
+Use --strict-adoption for new-app/scaffold validation that must include
+privacy/diagnostics descriptors and config/ouro-app-control-deck.json.
 USAGE
 }
 
@@ -29,8 +32,9 @@ fail() {
 run_static_checks() {
   local repo="$1"
   local consumer="$2"
+  local strict_adoption="$3"
 
-  python3 - "$repo" "$consumer" <<'PY'
+  python3 - "$repo" "$consumer" "$strict_adoption" <<'PY'
 import json
 import os
 import pathlib
@@ -41,6 +45,7 @@ import sys
 
 repo = pathlib.Path(sys.argv[1]).resolve()
 consumer = sys.argv[2] or repo.name
+strict_adoption = sys.argv[3] == "true"
 shell_url = "https://github.com/ourostack/ouro-native-apple-app-shell.git"
 assignment_pattern = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 issues = []
@@ -414,9 +419,12 @@ required_contract_tokens = [
     "OuroAppShellCommandReferenceContract",
     "utilityWindows:",
     "OuroAppShellSettingsContract",
-    "privacyDiagnostics:",
-    "OuroAppShellPrivacyDiagnosticsContract",
 ]
+if strict_adoption:
+    required_contract_tokens.extend([
+        "privacyDiagnostics:",
+        "OuroAppShellPrivacyDiagnosticsContract",
+    ])
 contract_text = "\n".join(text for _, text in contract_sources)
 for token in required_contract_tokens:
     if token in contract_text:
@@ -440,7 +448,13 @@ else:
     add_issue("consumer tests must call OuroAppShellContractAssertions.assertRequiresShellFirstSurfaces")
 
 control_deck_path = repo / "config" / "ouro-app-control-deck.json"
-control_deck = read(control_deck_path)
+control_deck = ""
+if control_deck_path.exists():
+    control_deck = control_deck_path.read_text(encoding="utf-8")
+elif strict_adoption:
+    add_issue("missing config/ouro-app-control-deck.json")
+else:
+    notes.append("control deck check skipped; run --strict-adoption for new-app scaffold validation")
 if control_deck:
     try:
         control_data = json.loads(control_deck)
@@ -599,7 +613,7 @@ run_doctor() {
   repo="$(cd "$repo" && pwd)"
   [ -n "$consumer" ] || consumer="$(basename "$repo")"
 
-  run_static_checks "$repo" "$consumer" || return 1
+  run_static_checks "$repo" "$consumer" "$STRICT_ADOPTION" || return 1
   run_boundary_wrapper_selftest "$repo" || return 1
   run_boundary_wrapper_scan "$repo" || return 1
   run_boundary_scan "$repo" "$allowlist" || return 1
@@ -608,6 +622,7 @@ run_doctor() {
 
 run_selftest() {
   local tmp valid invalid
+  STRICT_ADOPTION=true
   tmp="$(mktemp -d)"
   SELFTEST_TMP="$tmp"
   trap 'rm -rf "$SELFTEST_TMP"' EXIT
@@ -1185,6 +1200,10 @@ while [ "$#" -gt 0 ]; do
       [ "$#" -ge 2 ] || fail "--allowlist requires a file"
       ALLOWLIST="$2"
       shift 2
+      ;;
+    --strict-adoption)
+      STRICT_ADOPTION=true
+      shift
       ;;
     --selftest)
       run_selftest

@@ -87,7 +87,7 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 **Output**: Passing validation logs in artifacts.
 **Acceptance**: Docs validation passes, generated fixture remains disposable, and no generated package cache noise is tracked.
 
-### ⬜ Unit 3: Full Shell And Downstream Validation
+### ✅ Unit 3: Full Shell And Downstream Validation
 **What**: Run required shell validation plus downstream checks for `ouro-md` and `ouro-workbench`.
 **Output**: Logs in artifacts.
 **Acceptance**: `scripts/check-shell-boundary.sh --selftest`, `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`, `scripts/ui-surface-probe.sh`, `scripts/check-coverage.sh`, and `scripts/check-downstream-consumers.sh --consumer ouro-md/--consumer ouro-workbench` pass or any residual is classified with hard-exception evidence.
@@ -115,3 +115,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - 2026-06-30 18:02 Unit 2a complete: added adoption docs validator; red log shows missing cold-start/control-deck/privacy guidance.
 - 2026-06-30 18:03 Unit 2b complete: README/docs/CI now describe and validate the cold-start scaffold, control deck, package products, and privacy/diagnostics path.
 - 2026-06-30 18:05 Unit 2c complete: docs validator, scaffold selftest, shell-doctor selftest, and disposable fixture inspection pass; no generated package noise tracked.
+- 2026-06-30 18:12 Unit 3 complete: shell boundary, docs validator, strict tests, UI probe, coverage, scaffold/doctor selftests, and downstream MD/Workbench checks pass; shell-doctor strict adoption is opt-in for new apps.
