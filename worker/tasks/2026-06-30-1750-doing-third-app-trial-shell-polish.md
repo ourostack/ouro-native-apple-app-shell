@@ -72,7 +72,7 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 **Output**: Passing focused validation evidence in artifacts.
 **Acceptance**: Scaffold selftest, shell-doctor selftest, and `swift test --filter OuroAppShellConsumerTestingTests` pass with no warnings.
 
-### ⬜ Unit 2a: Adoption Docs And Control Deck — Tests
+### ✅ Unit 2a: Adoption Docs And Control Deck — Tests
 **What**: Add failing doc/metadata assertions to existing selftests or lightweight script checks proving README/docs mention the cold-start scaffold path, privacy/diagnostics, control deck, and package products needed by a third app.
 **Output**: Test/script assertions only.
 **Acceptance**: The chosen validation fails before docs are updated.
@@ -112,3 +112,4 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 - 2026-06-30 17:50 Unit 1a complete: added red scaffold/doctor assertions for privacy diagnostics and control-deck fixture coverage; red log shows missing privacy diagnostics.
 - 2026-06-30 18:00 Unit 1b complete: scaffold now generates privacy/diagnostics descriptors and `config/ouro-app-control-deck.json`; scaffold selftest passes.
 - 2026-06-30 18:02 Unit 1c complete: scaffold selftest, shell-doctor selftest, and focused consumer testing Swift tests pass with strict flags.
+- 2026-06-30 18:02 Unit 2a complete: added adoption docs validator; red log shows missing cold-start/control-deck/privacy guidance.
