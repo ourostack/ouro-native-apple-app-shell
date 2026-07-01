@@ -1,6 +1,6 @@
 # Planning: Third-App Trial And Shell Package Polish
 
-**Status**: drafting
+**Status**: approved
 **Created**: 2026-06-30 17:50
 
 ## Goal
@@ -66,5 +66,8 @@ Prove that a third native Ouro app can adopt `ouro-native-apple-app-shell` witho
 ## Notes
 Tinfoil Hat pass: the current scaffold validates command manifests but does not exercise privacy/diagnostics descriptors or an explicit control-deck artifact, so a third app could still miss those adoption surfaces. The validation path must prove the generated fixture itself, not just existing MD/Workbench consumers.
 
+Reviewer gate: external reviewer tool returned an empty response, so it was not counted as convergence. A local cold pass re-read the planning doc against the roadmap and each cited repo path; no BLOCKER/MAJOR findings remained. The main omission risk, privacy/diagnostics and control-deck coverage, is already in scope and must be carried into the doing doc.
+
 ## Progress Log
 - 2026-06-30 17:50 Created
+- 2026-06-30 17:50 Approved after reviewer-gated source-fidelity pass
