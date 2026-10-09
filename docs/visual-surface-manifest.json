@@ -9,6 +9,34 @@
       "owner": "shell"
     },
     {
+      "id": "about-long-history",
+      "surface": "about",
+      "state": "25Highlights",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "about-long-history-narrow",
+      "surface": "about",
+      "state": "25HighlightsMinimumSize",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "about-long-history-narrow-available",
+      "surface": "about",
+      "state": "25HighlightsMinimumSizeUpdateAvailable",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
+      "id": "about-long-history-narrow-failed",
+      "surface": "about",
+      "state": "25HighlightsMinimumSizeUpdateFailed",
+      "validationTool": "shellSurfaceProbe",
+      "owner": "shell"
+    },
+    {
       "id": "about-available",
       "surface": "about",
       "state": "updateAvailable",

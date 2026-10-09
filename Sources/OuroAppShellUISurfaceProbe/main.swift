@@ -91,6 +91,29 @@ private struct SurfaceProbe {
             )
         )
 
+        var historyModel = aboutModel
+        historyModel.whatsNew?.highlights = ["First history entry"] + (2...24).map {
+            "Highlight \($0): A wrapping release improvement kept in the complete release history."
+        } + ["Final history entry"]
+        historyModel.whatsNew?.releaseNotesPreview = nil
+        for (spec, state) in [
+            (historySpec(name: "about-long-history", width: 520, height: 520), nil),
+            (historySpec(name: "about-long-history-narrow", width: 460, height: 360), nil),
+            (historySpec(name: "about-long-history-narrow-available", width: 460, height: 360), availableState),
+            (historySpec(name: "about-long-history-narrow-failed", width: 460, height: 360), ReleaseUpdateViewState.failed)
+        ] {
+            try measure(
+                spec: spec,
+                AppShellAboutView(
+                    model: historyModel,
+                    updateState: state,
+                    updateActions: fullActions,
+                    aboutActions: AppShellAboutActions(openRepository: {}, copyVersion: {}, dismiss: {})
+                )
+                .frame(width: spec.width, height: spec.height)
+            )
+        }
+
         for state in updateControlStates(availableState: availableState) {
             try measure(
                 spec: updateControlSpec(for: state, actions: fullActions),
@@ -148,6 +171,23 @@ private struct SurfaceProbe {
                 preferredSectionOrder: ["File", "Edit", "Help"],
                 onDone: {}
             )
+        )
+    }
+
+    private func historySpec(name: String, width: CGFloat, height: CGFloat) -> SurfaceSpec {
+        SurfaceSpec(
+            name: name,
+            width: width,
+            height: height,
+            expectedWidth: width...width,
+            expectedHeight: height...height,
+            minimumInkRatio: nonBlankInkRatio,
+            requiredRenderedText: [
+                "Ouro MD", "What's New", "First history entry", "Open Repo", "Copy Version", "Done"
+            ],
+            scrollingEndText: "Final history entry",
+            requiredAccessibleButtons: ["Open Repo", "Copy Version", "Done"],
+            requiredAccessibleScrollLabel: "What's New in 0.9.24"
         )
     }
 
@@ -338,6 +378,42 @@ private struct SurfaceProbe {
             throw ProbeFailure.unexpectedRenderedText(name: spec.name, token: token, recognizedText: renderedText)
         }
 
+        for title in spec.requiredAccessibleButtons {
+            let buttons = accessibilityDescendants(renderingView).filter {
+                $0.accessibilityRole() == .button && $0.accessibilityLabel() == title
+            }
+            guard buttons.contains(where: {
+                let frame = renderingView.convert(window.convertFromScreen($0.accessibilityFrame()), from: nil)
+                return frame.width > 0 && frame.height > 0 && renderingView.bounds.contains(frame)
+            }) else {
+                throw ProbeFailure.accessibility(name: spec.name, detail: "Missing or clipped button: \(title)")
+            }
+        }
+        if let label = spec.requiredAccessibleScrollLabel {
+            guard accessibilityDescendants(renderingView).contains(where: {
+                $0.accessibilityRole() == .scrollArea && $0.accessibilityLabel() == label
+            }) else {
+                throw ProbeFailure.accessibility(name: spec.name, detail: "Missing labeled release-history scroll area")
+            }
+        }
+        if let endText = spec.scrollingEndText {
+            guard let scroll = viewDescendants(renderingView).compactMap({ $0 as? NSScrollView }).first,
+                  let document = scroll.documentView,
+                  document.frame.height > scroll.contentView.bounds.height else {
+                throw ProbeFailure.accessibility(name: spec.name, detail: "History has no overflowing scroll viewport")
+            }
+            scroll.contentView.scroll(to: NSPoint(x: 0, y: document.frame.height - scroll.contentView.bounds.height))
+            scroll.reflectScrolledClipView(scroll.contentView)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+            renderingView.layoutSubtreeIfNeeded()
+            let scrolled = recognizeText(in: try self.renderedSurface(renderingView, name: "\(spec.name)-scrolled").image)
+            for token in [endText, "What's New", "Open Repo", "Copy Version", "Done"] {
+                guard renderedTextContains(scrolled, token) else {
+                    throw ProbeFailure.missingRenderedText(name: "\(spec.name)-scrolled", token: token, recognizedText: scrolled)
+                }
+            }
+        }
+
         print(
             "\(spec.name): \(Int(fittingSize.width))x\(Int(fittingSize.height)), "
                 + "pixels=\(renderedSurface.ink.nonBlankPixels)/\(renderedSurface.ink.totalPixels), "
@@ -345,6 +421,17 @@ private struct SurfaceProbe {
                 + "min=\(String(format: "%.3f", spec.minimumInkRatio)), "
                 + "ocr=\(renderedText.count)"
         )
+    }
+
+    private func viewDescendants(_ view: NSView) -> [NSView] {
+        view.subviews.flatMap { [$0] + viewDescendants($0) }
+    }
+
+    private func accessibilityDescendants(_ element: any NSAccessibilityProtocol) -> [any NSAccessibilityProtocol] {
+        (element.accessibilityChildren() ?? []).flatMap { child -> [any NSAccessibilityProtocol] in
+            guard let child = child as? any NSAccessibilityProtocol else { return [] }
+            return [child] + accessibilityDescendants(child)
+        }
     }
 
     private func renderedSurface(_ view: NSView, name: String) throws -> RenderedSurface {
@@ -452,6 +539,9 @@ private struct SurfaceSpec {
     var minimumInkRatio: Double
     var requiredRenderedText: [String]
     var forbiddenRenderedText: [String] = []
+    var scrollingEndText: String?
+    var requiredAccessibleButtons: [String] = []
+    var requiredAccessibleScrollLabel: String?
 }
 
 private extension ReleaseUpdateViewState {
@@ -514,6 +604,7 @@ private enum ProbeFailure: Error, CustomStringConvertible {
     case missingBitmap(name: String)
     case missingRenderedText(name: String, token: String, recognizedText: Set<String>)
     case unexpectedRenderedText(name: String, token: String, recognizedText: Set<String>)
+    case accessibility(name: String, detail: String)
 
     var description: String {
         switch self {
@@ -529,6 +620,8 @@ private enum ProbeFailure: Error, CustomStringConvertible {
         case let .unexpectedRenderedText(name, token, recognizedText):
             let observed = recognizedText.sorted().joined(separator: " | ")
             return "\(name) rendered forbidden text token: \(token); recognized: \(observed)"
+        case let .accessibility(name, detail):
+            return "\(name) accessibility/scrolling failure: \(detail)"
         }
     }
 }

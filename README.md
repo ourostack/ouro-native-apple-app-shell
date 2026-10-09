@@ -37,6 +37,19 @@ surface loses required rendered text/action labels, renders too little
 non-background content, or reports implausible fitting sizes, so shared shell
 regressions are caught here before they reach downstream apps.
 
+About keeps its title, release metadata, and action buttons outside the scrolling
+release-content viewport. Short histories retain their intrinsic presentation;
+long histories remain complete and scroll within the consumer's available height.
+The probe covers 25 highlights at 520x520 and the supported 460x360 minimum,
+accessible footer buttons and a labeled scroll area, and rendered first/last
+entries before/after scrolling, including available/failed update states.
+Below 400 points tall, compact gaps and padding reserve room for the history
+without changing title/button typography; the normal 520x520 presentation is
+unchanged for short lists. Non-activating layout tests also cover optional
+update controls, preferred fitting size, and histories that already fit.
+The visual probe orders an offscreen window key/front: run it on hosted CI when
+local foreground-window changes are not permitted.
+
 The downstream consumer check clones Ouro MD and Ouro Workbench into
 `.downstream-consumers`, overrides their `ouro-native-apple-app-shell`
 SwiftPM dependency to this checkout, then runs each app's build/test/UI smoke.

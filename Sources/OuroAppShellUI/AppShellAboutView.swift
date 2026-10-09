@@ -38,22 +38,29 @@ public struct AppShellAboutView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            header
+        GeometryReader { geometry in
+            let compact = geometry.size.height < 400
+            VStack(alignment: .leading, spacing: compact ? 4 : 18) {
+                header
+                    .fixedSize(horizontal: false, vertical: true)
 
-            if let updateState, let updateActions {
-                ReleaseUpdateControls(state: updateState, actions: updateActions, showTitle: true)
+                if let updateState, let updateActions {
+                    ReleaseUpdateControls(state: updateState, actions: updateActions, showTitle: true)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if let whatsNew = model.whatsNew, whatsNew.hasVisibleContent {
+                    AppShellWhatsNewView(model: whatsNew)
+                        .layoutPriority(-1)
+                }
+
+                Spacer(minLength: 0)
+
+                footer
+                    .fixedSize(horizontal: false, vertical: true)
             }
-
-            if let whatsNew = model.whatsNew, whatsNew.hasVisibleContent {
-                AppShellWhatsNewView(model: whatsNew)
-            }
-
-            Spacer(minLength: 0)
-
-            footer
+            .padding(compact ? 12 : 20)
         }
-        .padding(20)
         .frame(minWidth: 460, idealWidth: 520, maxWidth: 560, minHeight: 360, idealHeight: 500)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(model.accessibilityLabel)
@@ -130,13 +137,29 @@ public struct AppShellWhatsNewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label(model.title, systemImage: "sparkles")
                 .font(.system(size: 13, weight: .semibold))
+                .fixedSize(horizontal: false, vertical: true)
 
             if let releasedText = model.releasedText {
                 Text(releasedText)
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
+            ViewThatFits(in: .vertical) {
+                releaseContent
+                    .fixedSize(horizontal: false, vertical: true)
+                ScrollView(.vertical) {
+                    releaseContent
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .accessibilityLabel(model.title)
+            }
+        }
+    }
+
+    private var releaseContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
             if !model.highlights.isEmpty {
                 VStack(alignment: .leading, spacing: 5) {
                     ForEach(model.highlights, id: \.self) { highlight in
