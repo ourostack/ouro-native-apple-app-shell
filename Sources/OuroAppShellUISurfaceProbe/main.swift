@@ -386,7 +386,14 @@ private struct SurfaceProbe {
                 let frame = renderingView.convert(window.convertFromScreen($0.accessibilityFrame()), from: nil)
                 return frame.width > 0 && frame.height > 0 && renderingView.bounds.contains(frame)
             }) else {
-                throw ProbeFailure.accessibility(name: spec.name, detail: "Missing or clipped button: \(title)")
+                let observed = accessibilityDescendants(renderingView).map {
+                    "\($0.accessibilityRole()?.rawValue ?? "") label=\($0.accessibilityLabel() ?? "")"
+                        + " title=\($0.accessibilityTitle() ?? "") frame=\($0.accessibilityFrame())"
+                }.joined(separator: " | ")
+                throw ProbeFailure.accessibility(
+                    name: spec.name,
+                    detail: "Missing or clipped button: \(title); children=\(String(describing: renderingView.accessibilityChildren())); observed=\(observed)"
+                )
             }
         }
         if let label = spec.requiredAccessibleScrollLabel {
