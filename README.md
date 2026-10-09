@@ -41,14 +41,18 @@ About keeps its title, release metadata, and action buttons outside the scrollin
 release-content viewport. Short histories retain their intrinsic presentation;
 long histories remain complete and scroll within the consumer's available height.
 The probe covers 25 highlights at 520x520 and the supported 460x360 minimum,
-accessible footer buttons and a labeled scroll area, and rendered first/last
-entries before/after scrolling, including available/failed update states.
+native scroll-area/scrollbar accessibility roles and position values, and
+rendered footer buttons and first/last entries before/after scrolling, including
+available/failed update states.
 Below 400 points tall, compact gaps and padding reserve room for the history
 without changing title/button typography; the normal 520x520 presentation is
 unchanged for short lists. Non-activating layout tests also cover optional
 update controls, preferred fitting size, and histories that already fit.
 The visual probe orders an offscreen window key/front: run it on hosted CI when
 local foreground-window changes are not permitted.
+Direct SwiftUI accessibility-child enumeration in that offscreen harness returns
+an empty tree on hosted macOS; these checks do not certify full VoiceOver
+navigation or footer accessibility-tree traversal.
 
 The downstream consumer check clones Ouro MD and Ouro Workbench into
 `.downstream-consumers`, overrides their `ouro-native-apple-app-shell`

@@ -59,6 +59,22 @@ final class AppShellAboutLayoutTests: XCTestCase {
         }
     }
 
+    func testNativeAccessibilityExposesScrollRoleAndHistoryPosition() async throws {
+        try await MainActor.run {
+            try Self.withHost(highlights: Self.longHistory) { host in
+                let scroll = try XCTUnwrap(Self.descendants(host).compactMap { $0 as? NSScrollView }.first)
+                XCTAssertEqual(scroll.accessibilityRole(), .scrollArea)
+                let scroller = try XCTUnwrap(scroll.verticalScroller)
+                XCTAssertEqual(scroller.accessibilityRole(), .scrollBar)
+                XCTAssertEqual(try XCTUnwrap(scroller.accessibilityValue() as? NSNumber).doubleValue, 0, accuracy: 0.01)
+                let document = try XCTUnwrap(scroll.documentView)
+                scroll.contentView.scroll(to: NSPoint(x: 0, y: document.frame.height - scroll.contentView.bounds.height))
+                scroll.reflectScrolledClipView(scroll.contentView)
+                XCTAssertEqual(try XCTUnwrap(scroller.accessibilityValue() as? NSNumber).doubleValue, 1, accuracy: 0.01)
+            }
+        }
+    }
+
     private static let longHistory = (1...25).map {
         "Highlight \($0): A wrapping release improvement that remains available in the complete history."
     }

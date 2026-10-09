@@ -185,9 +185,7 @@ private struct SurfaceProbe {
             requiredRenderedText: [
                 "Ouro MD", "What's New", "First history entry", "Open Repo", "Copy Version", "Done"
             ],
-            scrollingEndText: "Final history entry",
-            requiredAccessibleButtons: ["Open Repo", "Copy Version", "Done"],
-            requiredAccessibleScrollLabel: "What's New in 0.9.24"
+            scrollingEndText: "Final history entry"
         )
     }
 
@@ -378,39 +376,24 @@ private struct SurfaceProbe {
             throw ProbeFailure.unexpectedRenderedText(name: spec.name, token: token, recognizedText: renderedText)
         }
 
-        for title in spec.requiredAccessibleButtons {
-            let buttons = accessibilityDescendants(renderingView).filter {
-                $0.accessibilityRole() == .button && $0.accessibilityLabel() == title
-            }
-            guard buttons.contains(where: {
-                let frame = renderingView.convert(window.convertFromScreen($0.accessibilityFrame()), from: nil)
-                return frame.width > 0 && frame.height > 0 && renderingView.bounds.contains(frame)
-            }) else {
-                let observed = accessibilityDescendants(renderingView).map {
-                    "\($0.accessibilityRole()?.rawValue ?? "") label=\($0.accessibilityLabel() ?? "")"
-                        + " title=\($0.accessibilityTitle() ?? "") frame=\($0.accessibilityFrame())"
-                }.joined(separator: " | ")
-                throw ProbeFailure.accessibility(
-                    name: spec.name,
-                    detail: "Missing or clipped button: \(title); children=\(String(describing: renderingView.accessibilityChildren())); observed=\(observed)"
-                )
-            }
-        }
-        if let label = spec.requiredAccessibleScrollLabel {
-            guard accessibilityDescendants(renderingView).contains(where: {
-                $0.accessibilityRole() == .scrollArea && $0.accessibilityLabel() == label
-            }) else {
-                throw ProbeFailure.accessibility(name: spec.name, detail: "Missing labeled release-history scroll area")
-            }
-        }
         if let endText = spec.scrollingEndText {
             guard let scroll = viewDescendants(renderingView).compactMap({ $0 as? NSScrollView }).first,
                   let document = scroll.documentView,
                   document.frame.height > scroll.contentView.bounds.height else {
                 throw ProbeFailure.accessibility(name: spec.name, detail: "History has no overflowing scroll viewport")
             }
+            guard scroll.accessibilityRole() == .scrollArea,
+                  let scroller = scroll.verticalScroller,
+                  scroller.accessibilityRole() == .scrollBar,
+                  let initialValue = scroller.accessibilityValue() as? NSNumber,
+                  initialValue.doubleValue < 0.01 else {
+                throw ProbeFailure.accessibility(name: spec.name, detail: "Missing native scroll roles or initial position")
+            }
             scroll.contentView.scroll(to: NSPoint(x: 0, y: document.frame.height - scroll.contentView.bounds.height))
             scroll.reflectScrolledClipView(scroll.contentView)
+            guard let finalValue = scroller.accessibilityValue() as? NSNumber, finalValue.doubleValue > 0.99 else {
+                throw ProbeFailure.accessibility(name: spec.name, detail: "Native scroll position did not reach history end")
+            }
             RunLoop.current.run(until: Date().addingTimeInterval(0.08))
             renderingView.layoutSubtreeIfNeeded()
             let scrolled = recognizeText(in: try self.renderedSurface(renderingView, name: "\(spec.name)-scrolled").image)
@@ -432,13 +415,6 @@ private struct SurfaceProbe {
 
     private func viewDescendants(_ view: NSView) -> [NSView] {
         view.subviews.flatMap { [$0] + viewDescendants($0) }
-    }
-
-    private func accessibilityDescendants(_ element: any NSAccessibilityProtocol) -> [any NSAccessibilityProtocol] {
-        (element.accessibilityChildren() ?? []).flatMap { child -> [any NSAccessibilityProtocol] in
-            guard let child = child as? any NSAccessibilityProtocol else { return [] }
-            return [child] + accessibilityDescendants(child)
-        }
     }
 
     private func renderedSurface(_ view: NSView, name: String) throws -> RenderedSurface {
@@ -547,8 +523,6 @@ private struct SurfaceSpec {
     var requiredRenderedText: [String]
     var forbiddenRenderedText: [String] = []
     var scrollingEndText: String?
-    var requiredAccessibleButtons: [String] = []
-    var requiredAccessibleScrollLabel: String?
 }
 
 private extension ReleaseUpdateViewState {
