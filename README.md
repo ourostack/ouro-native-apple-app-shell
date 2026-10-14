@@ -1,3 +1,9 @@
+<!-- ourostack:brand:start -->
+<p align="center">
+  <a href="https://github.com/ourostack"><img src="https://raw.githubusercontent.com/ourostack/.github/main/brand/ouro.png" alt="Ourostack" width="96" height="96"></a>
+</p>
+<!-- ourostack:brand:end -->
+
 # ouro-native-apple-app-shell
 
 Shared native Apple app shell primitives for Ouro apps.
