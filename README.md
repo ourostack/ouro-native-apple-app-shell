@@ -4,9 +4,15 @@
 </p>
 <!-- ourostack:brand:end -->
 
-# ouro-native-apple-app-shell
+# Ouro native Apple app shell
 
-Shared native Apple app shell primitives for Ouro apps.
+**The shared shell of our native Apple apps: app identity, updates, About, settings and command discovery, as one Swift package.** [Ouro MD](https://github.com/ourostack/ouro-md) is built on it.
+
+[Docs index](docs/INDEX.md) · [Shell boundary](docs/shell-boundary.md) · [Adopt it in a new app](docs/INDEX.md#third-app-adoption-quick-start) · [More from Ouro](https://github.com/ourostack)
+
+```swift
+.package(url: "https://github.com/ourostack/ouro-native-apple-app-shell.git", branch: "main")
+```
 
 The repository name stays explicit because it is the distribution boundary.
 Inside Swift code, the package uses the shorter `OuroAppShell` naming.
