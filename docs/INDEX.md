@@ -5,8 +5,9 @@ consumer-specific task artifacts.
 
 ## Normative Docs
 
-- [README](../README.md): package products, validation commands, downstream
-  consumer checks, shell doctor, and scaffold workflow.
+- [README](../README.md): package products and validation commands.
+- [Validation in depth](validation.md): the UI probe, downstream consumer
+  checks, shell doctor, and scaffold workflow.
 - [Shell Boundary](shell-boundary.md): ownership contract for reusable native
   Ouro app chrome, consumer adapters, allowlists, and CI enforcement.
 - [Privacy And Diagnostics Contract](privacy-diagnostics-contract.md): descriptor
