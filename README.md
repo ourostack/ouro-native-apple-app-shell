@@ -16,7 +16,14 @@
 
 ```swift
 // Package.swift
-.package(url: "https://github.com/ourostack/ouro-native-apple-app-shell.git", branch: "main")
+dependencies: [
+    .package(url: "https://github.com/ourostack/ouro-native-apple-app-shell.git", branch: "main"),
+],
+targets: [
+    .target(name: "YourApp", dependencies: [
+        .product(name: "OuroAppShellUI", package: "ouro-native-apple-app-shell"),
+    ]),
+]
 
 // Your app
 import OuroAppShellUI
@@ -25,6 +32,9 @@ import OuroAppShellUI
 New app? Run `scripts/scaffold-consumer-adoption.sh --output <dir>` from this repo with your app's names and bundle ID. It writes a small package that already passes the shell doctor: the typed shell contract, contract tests, privacy/diagnostics descriptors and `config/ouro-app-control-deck.json`. The [adoption quick start](docs/INDEX.md#third-app-adoption-quick-start) has the full command.
 
 ## Package products
+
+Every product is imported by its own name, all starting `OuroAppShell`.
+
 
 - `OuroAppShellCore`: pure, testable app identity, release/update, and
   distribution-channel logic shared by native Ouro apps.
