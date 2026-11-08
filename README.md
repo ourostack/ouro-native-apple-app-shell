@@ -10,12 +10,13 @@
 
 [Docs index](docs/INDEX.md) · [Shell boundary](docs/shell-boundary.md) · [Adopt it in a new app](docs/INDEX.md#third-app-adoption-quick-start) · [More from Ouro](https://github.com/ourostack)
 
-**Status:** pre-1.0. No tags or releases yet, so consumers track `branch: "main"`.
+**Status:** pre-1.0, macOS 13 and later. No tags or releases yet, so consumers track `branch: "main"`.
 
 ## Use it
 
 ```swift
-// Package.swift
+// Package.swift (the shell is macOS 13 and later)
+platforms: [.macOS(.v13)],
 dependencies: [
     .package(url: "https://github.com/ourostack/ouro-native-apple-app-shell.git", branch: "main"),
 ],
@@ -29,7 +30,16 @@ targets: [
 import OuroAppShellUI
 ```
 
-New app? Run `scripts/scaffold-consumer-adoption.sh --output <dir>` from this repo with your app's names and bundle ID. It writes a small package that already passes the shell doctor: the typed shell contract, contract tests, privacy/diagnostics descriptors and `config/ouro-app-control-deck.json`. The [adoption quick start](docs/INDEX.md#third-app-adoption-quick-start) has the full command.
+New app? From this repo, write a small package that already passes the shell doctor (the typed shell contract, contract tests, privacy/diagnostics descriptors and `config/ouro-app-control-deck.json`):
+
+```sh
+scripts/scaffold-consumer-adoption.sh --output ../my-app-shell \
+  --package-name MyAppShell --module-name MyApp --app-name "My App" \
+  --bundle-id com.example.myapp --repository you/my-app \
+  --dependency-mode remote
+```
+
+The [adoption quick start](docs/INDEX.md#third-app-adoption-quick-start) says what to do with it next.
 
 ## Package products
 
