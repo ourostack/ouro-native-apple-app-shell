@@ -1,6 +1,19 @@
 # Validation in depth
 
-What each of the [README's validation commands](../README.md#validation) proves, and how the shell doctor and consumer scaffold fit in.
+The checks that guard the shell, what each proves, and how the shell doctor and consumer scaffold fit in.
+
+## Commands
+
+- `swift test -Xswiftc -warnings-as-errors -Xswiftc -strict-concurrency=complete`
+- `scripts/check-shell-boundary.sh --selftest`
+- `scripts/check-coverage.sh`
+- `scripts/ui-surface-probe.sh`
+- `scripts/shell-doctor.sh --selftest`
+- `scripts/scaffold-consumer-adoption.sh --selftest`
+- `scripts/validate-adoption-docs.py`
+- `scripts/check-downstream-consumers.sh`
+
+## What they prove
 
 The UI probe is a package-owned executable that renders representative About,
 release update, and installed-confirmation surfaces offscreen. It fails when a
