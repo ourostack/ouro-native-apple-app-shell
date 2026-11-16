@@ -1,3 +1,4 @@
+import OuroHX
 import SwiftUI
 
 @MainActor
@@ -129,12 +130,9 @@ public struct ReleaseUpdateControls: View {
     }
 
     private var checkForUpdatesButton: some View {
-        Button {
+        OuroButton(labels.check, systemImage: "arrow.clockwise", variant: .outline, size: .sm) {
             actions.checkForUpdates()
-        } label: {
-            Label(labels.check, systemImage: "arrow.clockwise")
         }
-        .controlSize(.small)
         .disabled(state.kind == .checking)
         .accessibilityLabel("Check for updates")
     }
@@ -142,12 +140,9 @@ public struct ReleaseUpdateControls: View {
     @ViewBuilder
     private var reviewUpdateButton: some View {
         if state.canReviewUpdate, let reviewUpdate = actions.reviewUpdate {
-            Button {
+            OuroButton(labels.review, systemImage: "arrow.down.circle", variant: .outline, size: .sm) {
                 reviewUpdate()
-            } label: {
-                Label(labels.review, systemImage: "arrow.down.circle")
             }
-            .controlSize(.small)
             .disabled(state.kind == .installing)
             .accessibilityLabel("Review update")
         }
@@ -156,13 +151,9 @@ public struct ReleaseUpdateControls: View {
     @ViewBuilder
     private var installAndRelaunchButton: some View {
         if state.canInstallUpdate, let installAndRelaunch = actions.installAndRelaunch {
-            Button {
+            OuroButton(labels.installActionLabel(for: state.kind), systemImage: installActionSystemImage, variant: .solid, size: .sm) {
                 installAndRelaunch()
-            } label: {
-                Label(labels.installActionLabel(for: state.kind), systemImage: installActionSystemImage)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
             .disabled(state.kind == .installing)
             .accessibilityLabel(labels.installActionAccessibilityLabel(for: state.kind))
         }
@@ -175,12 +166,9 @@ public struct ReleaseUpdateControls: View {
     @ViewBuilder
     private var openReleasePageButton: some View {
         if state.canOpenReleasePage, let openReleasePage = actions.openReleasePage {
-            Button {
+            OuroButton(labels.openRelease, systemImage: "safari", variant: .outline, size: .sm) {
                 openReleasePage()
-            } label: {
-                Label(labels.openRelease, systemImage: "safari")
             }
-            .controlSize(.small)
             .accessibilityLabel("Open release notes")
         }
     }
@@ -195,33 +183,24 @@ public struct AppShellStatusPill: View {
     }
 
     public var body: some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(color)
-                .frame(width: 7, height: 7)
-                .accessibilityHidden(true)
-            Text(kind.label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 5))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Update state")
-        .accessibilityValue(kind.label)
+        OuroBadge(kind.label, tone: kind.tone.ouroTone, variant: .soft)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Update state")
+            .accessibilityValue(kind.label)
     }
+}
 
-    private var color: Color {
-        switch kind.tone {
+extension ReleaseUpdateTone {
+    var ouroTone: OuroTone {
+        switch self {
         case .neutral:
             return .secondary
         case .success:
-            return .green
+            return .success
         case .attention:
-            return .orange
+            return .warning
         case .danger:
-            return .red
+            return .destructive
         }
     }
 }

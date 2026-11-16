@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "OuroAppShell",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v15)
     ],
     products: [
         .library(name: "OuroAppShellCore", targets: ["OuroAppShellCore"]),
@@ -14,6 +14,9 @@ let package = Package(
         .library(name: "OuroAppShellAppKit", targets: ["OuroAppShellAppKit"]),
         .library(name: "OuroAppShellUI", targets: ["OuroAppShellUI"]),
         .executable(name: "OuroAppShellUISurfaceProbe", targets: ["OuroAppShellUISurfaceProbe"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", .upToNextMinor(from: "1.0.0")),
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
@@ -31,7 +34,10 @@ let package = Package(
         ),
         .target(
             name: "OuroAppShellUI",
-            dependencies: ["OuroAppShellCore"]
+            dependencies: [
+                "OuroAppShellCore",
+                .product(name: "OuroHX", package: "ouro-ui-apple"),
+            ]
         ),
         .executableTarget(
             name: "OuroAppShellUISurfaceProbe",

@@ -1,3 +1,4 @@
+import OuroHX
 import SwiftUI
 
 @MainActor
@@ -95,30 +96,26 @@ public struct AppShellAboutView: View {
     private var footer: some View {
         HStack(spacing: 8) {
             if let openRepository = aboutActions.openRepository {
-                Button {
+                OuroButton("Open Repo", systemImage: "arrow.up.right.square", variant: .outline, size: .sm) {
                     openRepository()
-                } label: {
-                    Label("Open Repo", systemImage: "arrow.up.right.square")
                 }
             }
 
             if let copyVersion = aboutActions.copyVersion {
-                Button {
+                OuroButton(copiedVersion ? "Copied" : "Copy Version", systemImage: copiedVersion ? "checkmark" : "doc.on.doc", variant: .outline, size: .sm) {
                     copyVersion()
                     copiedVersion = true
                     Task {
                         try? await Task.sleep(nanoseconds: 1_500_000_000)
                         copiedVersion = false
                     }
-                } label: {
-                    Label(copiedVersion ? "Copied" : "Copy Version", systemImage: copiedVersion ? "checkmark" : "doc.on.doc")
                 }
             }
 
             Spacer(minLength: 0)
 
             if let dismiss = aboutActions.dismiss {
-                Button("Done") { dismiss() }
+                OuroButton("Done", size: .sm) { dismiss() }
                     .keyboardShortcut(.defaultAction)
             }
         }

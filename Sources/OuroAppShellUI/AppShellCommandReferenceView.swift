@@ -1,3 +1,4 @@
+import OuroHX
 import SwiftUI
 
 public struct AppShellCommandReferenceItem: Identifiable, Equatable, Sendable {
@@ -163,7 +164,7 @@ public struct AppShellCommandReferenceView: View {
                 }
             }
             Spacer()
-            Button(doneTitle) {
+            OuroButton(doneTitle, size: .sm) {
                 if let onDone {
                     onDone()
                 } else {

@@ -119,7 +119,7 @@ write(
 
     let package = Package(
         name: {swift_string(package_name)},
-        platforms: [.macOS(.v13)],
+        platforms: [.macOS(.v15)],
         dependencies: [
             {dependency_line}
         ],

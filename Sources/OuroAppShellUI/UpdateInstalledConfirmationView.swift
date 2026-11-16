@@ -1,3 +1,4 @@
+import OuroHX
 import SwiftUI
 
 @MainActor
@@ -29,39 +30,28 @@ public struct UpdateInstalledConfirmationView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .font(.system(size: 26))
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("\(appName) \(version) is installed")
-                        .font(.system(size: 14, weight: .semibold))
-                    Text("The latest version is now running on this Mac.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
-            }
-
+        OuroBanner(
+            "\(appName) \(version) is installed",
+            description: "The latest version is now running on this Mac.",
+            tone: .success
+        ) {
             HStack(spacing: 8) {
                 Spacer(minLength: 0)
-                Button {
-                    onOpenAbout()
-                } label: {
-                    if let openAboutSystemImage {
-                        Label(openAboutLabel, systemImage: openAboutSystemImage)
-                    } else {
-                        Text(openAboutLabel)
+                if let openAboutSystemImage {
+                    OuroButton(openAboutLabel, systemImage: openAboutSystemImage, variant: .outline, size: .sm) {
+                        onOpenAbout()
+                    }
+                } else {
+                    OuroButton(openAboutLabel, variant: .outline, size: .sm) {
+                        onOpenAbout()
                     }
                 }
-                Button(dismissLabel) {
+                OuroButton(dismissLabel, size: .sm) {
                     onDismiss()
                 }
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(18)
         .frame(minWidth: 360)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(appName) \(version) is installed")

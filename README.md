@@ -10,13 +10,13 @@
 
 [Docs index](docs/INDEX.md) · [Shell boundary](docs/shell-boundary.md) · [Adopt it in a new app](docs/INDEX.md#third-app-adoption-quick-start) · [More from Ouro](https://github.com/ourostack)
 
-**Status:** pre-1.0, macOS 13 and later. No tags or releases yet, so consumers track `branch: "main"`.
+**Status:** pre-1.0, macOS 15 and later. No tags or releases yet, so consumers track `branch: "main"`.
 
 ## Use it
 
 ```swift
-// Package.swift (the shell is macOS 13 and later)
-platforms: [.macOS(.v13)],
+// Package.swift (the shell is macOS 15 and later)
+platforms: [.macOS(.v15)],
 dependencies: [
     .package(url: "https://github.com/ourostack/ouro-native-apple-app-shell.git", branch: "main"),
 ],

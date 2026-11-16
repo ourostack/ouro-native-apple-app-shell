@@ -636,7 +636,7 @@ import PackageDescription
 
 let package = Package(
     name: "FakeConsumer",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v15)],
     dependencies: [
         .package(url: "https://github.com/ourostack/ouro-native-apple-app-shell.git", branch: "main")
     ],
