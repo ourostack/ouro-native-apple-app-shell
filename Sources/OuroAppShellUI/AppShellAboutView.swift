@@ -46,7 +46,7 @@ public struct AppShellAboutView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let updateState, let updateActions {
-                    ReleaseUpdateControls(state: updateState, actions: updateActions, showTitle: true)
+                    ReleaseUpdateControls(state: updateState, actions: updateActions, showTitle: true, spacing: compact ? 4 : 8)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 

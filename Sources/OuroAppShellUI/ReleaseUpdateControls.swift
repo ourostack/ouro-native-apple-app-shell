@@ -28,23 +28,26 @@ public struct ReleaseUpdateControls: View {
     public var labels: ReleaseUpdateActionLabels
     public var showTitle: Bool
     public var centered: Bool
+    public var spacing: CGFloat
 
     public init(
         state: ReleaseUpdateViewState,
         actions: ReleaseUpdateActions,
         labels: ReleaseUpdateActionLabels = ReleaseUpdateActionLabels(),
         showTitle: Bool = true,
-        centered: Bool = false
+        centered: Bool = false,
+        spacing: CGFloat = 8
     ) {
         self.state = state
         self.actions = actions
         self.labels = labels
         self.showTitle = showTitle
         self.centered = centered
+        self.spacing = spacing
     }
 
     public var body: some View {
-        VStack(alignment: centered ? .center : .leading, spacing: 8) {
+        VStack(alignment: centered ? .center : .leading, spacing: spacing) {
             if showTitle {
                 HStack(spacing: 8) {
                     Label("Software Updates", systemImage: "arrow.down.app")
@@ -115,7 +118,7 @@ public struct ReleaseUpdateControls: View {
                 openReleasePageButton
             }
 
-            VStack(alignment: centered ? .center : .leading, spacing: 8) {
+            VStack(alignment: centered ? .center : .leading, spacing: spacing) {
                 HStack(spacing: 8) {
                     checkForUpdatesButton
                     reviewUpdateButton
