@@ -20,7 +20,7 @@ KEEP_WORKTREE="${OURO_DOWNSTREAM_KEEP_WORKTREE:-false}"
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: check-downstream-consumers.sh [--consumer ouro-md] [--consumer ouro-workbench] [--ref-mode pinned|live] [--check-pins-current|--warn-pins-current] [--print-matrix] [--keep-worktree] [--selftest]
+Usage: check-downstream-consumers.sh [--consumer ouro-md] [--ref-mode pinned|live] [--check-pins-current|--warn-pins-current] [--print-matrix] [--keep-worktree] [--selftest]
 
 By default, checks all downstream consumers in disposable clones under:
   .downstream-consumers
@@ -262,9 +262,8 @@ fi
 
 if [ "${SELFTEST:-false}" = true ]; then
   matrix="$(print_matrix)"
-  [ "$matrix" = '{"consumer":["ouro-md","ouro-workbench"]}' ] || fail "unexpected manifest matrix: $matrix"
+  [ "$matrix" = '{"consumer":["ouro-md"]}' ] || fail "unexpected manifest matrix: $matrix"
   consumer_smoke_commands ouro-md | grep -Fq 'swift test --package-path {dir}' || fail "ouro-md smoke commands missing swift test"
-  consumer_smoke_commands ouro-workbench | grep -Fq 'OuroWorkbench --uisurfacetest' || fail "ouro-workbench smoke commands missing UI surface test"
   if consumer_smoke_commands missing-consumer >/tmp/ouro-downstream-missing.out 2>/tmp/ouro-downstream-missing.err; then
     fail "selftest expected unknown consumer lookup to fail"
   fi
