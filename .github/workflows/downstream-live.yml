@@ -24,7 +24,7 @@ jobs:
   downstream-live-consumers:
     name: Downstream / live-main / ${{ matrix.consumer }}
     needs: downstream-live-contract
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 35
     strategy:
       fail-fast: false
