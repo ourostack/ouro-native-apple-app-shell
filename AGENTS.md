@@ -13,6 +13,10 @@ This repo is the source of truth for shared native Ouro app-shell behavior.
   -warnings-as-errors -Xswiftc -strict-concurrency=complete`,
   `scripts/ui-surface-probe.sh`, and `scripts/check-coverage.sh` before pushing.
 
+## Interfaces follow Ouro UI
+
+**[Interfaces follow Ouro UI](https://github.com/ourostack/.github/blob/main/agents/interfaces-follow-ouro-ui.md).** Every screen a person uses is built from Ouro HX, every door an agent uses is declared once with `ouro-actions` and checked by the Ouro AX X-ray in CI, Ouro is taken from its release tags (never copied by hand) and kept within a day of them, and what Ouro lacks is fixed in Ouro first.
+
 ## Shipping an app to the App Store
 
 An app built on this package that offers a third-party login (Google, GitHub and so on) shows Sign in with Apple first, full width, before those buttons and any password form, on every platform. App Review rejected Spoonjoy for Mac 1.0 under Guideline 4.8 when it sat last. Follow [App Store submission](https://github.com/ourostack/.github/blob/main/agents/app-store-submission.md) and run `apple-distribution-kit review login-services --root .` in the app's CI ([the kit manual's CI step](https://github.com/ourostack/apple-distribution-kit/blob/main/docs/manual.md#pre-submission-guideline-48-login-services)).
