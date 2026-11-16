@@ -18,7 +18,7 @@ concurrency:
 jobs:
   swift-test:
     name: Swift tests
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
@@ -46,7 +46,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
@@ -79,7 +79,7 @@ jobs:
   downstream-consumers:
     name: Downstream / ${{ matrix.consumer }}
     needs: downstream-contract
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 35
     strategy:
       fail-fast: false
