@@ -8,7 +8,7 @@
     {
       "name": "ouro-md",
       "repository": "https://github.com/ourostack/ouro-md.git",
-      "pinned_ref": "3f380545423ca13a257370dea12926c5665097df",
+      "pinned_ref": "cfb76284a2be87eea275f376adaf697629252a56",
       "live_ref": "main",
       "local_manifest": "config/ouro-app-control-deck.json",
       "adoption_surfaces": [

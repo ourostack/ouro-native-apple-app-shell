@@ -2,4 +2,4 @@
 # scripts/downstream-consumers.json.
 #
 # name	repository	pinned_ref	live_ref
-ouro-md	https://github.com/ourostack/ouro-md.git	97681aa703d364abb090b1f42228d4e1ea34e8ce	main
+ouro-md	https://github.com/ourostack/ouro-md.git	cfb76284a2be87eea275f376adaf697629252a56	main
