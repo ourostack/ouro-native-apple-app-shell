@@ -479,9 +479,11 @@ private struct SurfaceProbe {
     }
 
     private func renderedTextContains(_ renderedText: Set<String>, _ token: String) -> Bool {
-        let normalizedToken = normalizeOCRText(token)
+        // OCR drops and merges spaces (it reads "Installing 0.9.25..." as "Installing0.9.25..."), so the
+        // words must match in order, with the whitespace between them ignored on both sides.
+        let normalizedToken = normalizeOCRText(token).filter { !$0.isWhitespace }
         return renderedText.contains { line in
-            normalizeOCRText(line).contains(normalizedToken)
+            normalizeOCRText(line).filter { !$0.isWhitespace }.contains(normalizedToken)
         }
     }
 
