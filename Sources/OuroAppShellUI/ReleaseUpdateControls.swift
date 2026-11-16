@@ -183,10 +183,29 @@ public struct AppShellStatusPill: View {
     }
 
     public var body: some View {
-        OuroBadge(kind.label, tone: kind.tone.ouroTone, variant: .soft)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Update state")
-            .accessibilityValue(kind.label)
+        HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+                .accessibilityHidden(true)
+            OuroBadge(kind.label, tone: kind.tone.ouroTone, variant: .soft)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Update state")
+        .accessibilityValue(kind.label)
+    }
+
+    private var color: Color {
+        switch kind.tone {
+        case .neutral:
+            return .secondary
+        case .success:
+            return .green
+        case .attention:
+            return .orange
+        case .danger:
+            return .red
+        }
     }
 }
 
