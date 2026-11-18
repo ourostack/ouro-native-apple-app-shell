@@ -16,7 +16,7 @@ let package = Package(
         .executable(name: "OuroAppShellUISurfaceProbe", targets: ["OuroAppShellUISurfaceProbe"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", .upToNextMinor(from: "1.0.0")),
+        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", .upToNextMinor(from: "1.1.0")),
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
