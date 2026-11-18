@@ -16,9 +16,10 @@ let package = Package(
         .executable(name: "OuroAppShellUISurfaceProbe", targets: ["OuroAppShellUISurfaceProbe"])
     ],
     dependencies: [
-        // Any 1.x from 1.1, so an app on a newer minor of ouro-ui-apple still resolves with the shell (ouro-md#194
-        // could not resolve when it moved to 1.1 and the shell allowed only 1.0.x).
-        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", from: "1.1.0"),
+        // Any 1.x, so an app resolves with the shell whichever 1.x minor of ouro-ui-apple it is on: ouro-md#194 could
+        // not resolve on 1.1 while the shell allowed only 1.0.x, and with 1.1.0 as the floor Ouro MD's main, on 1.0,
+        // could not take a newer shell either.
+        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", from: "1.0.0"),
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
