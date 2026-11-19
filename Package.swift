@@ -19,7 +19,7 @@ let package = Package(
         // Any 1.x, so an app resolves with the shell whichever 1.x minor of ouro-ui-apple it is on: ouro-md#194 could
         // not resolve on 1.1 while the shell allowed only 1.0.x, and with 1.1.0 as the floor Ouro MD's main, on 1.0,
         // could not take a newer shell either.
-        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", from: "1.0.0"),
+        .package(url: "https://github.com/ourostack/ouro-ui-apple.git", from: "1.2.0"),
     ],
     targets: [
         .target(name: "OuroAppShellCore"),
